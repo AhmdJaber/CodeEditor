@@ -33,7 +33,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(
                                 "/editor/*",
-                                "/snippet/*" // TODO: should I remove them?
+                                "/snippet/*", // TODO: should I remove them?
+                                "/folder/*"
                                 )
                                 .permitAll()
                                 .anyRequest()

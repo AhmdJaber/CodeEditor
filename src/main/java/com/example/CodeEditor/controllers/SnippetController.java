@@ -9,13 +9,15 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/snippet")
 public class SnippetController {
+//    @PostMapping("/addFile")
+//    public boolean addFileToEditor(@RequestBody )
+
     @PostMapping("/execute")
     public String executeCode(@RequestBody Map<String, String> body) {
         String code = body.get("code");

@@ -1,5 +1,6 @@
 package com.example.CodeEditor.model.users.editor;
 
+import com.example.CodeEditor.model.component.files.Folder;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

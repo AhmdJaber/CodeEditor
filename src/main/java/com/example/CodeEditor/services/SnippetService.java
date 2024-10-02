@@ -1,12 +1,6 @@
 package com.example.CodeEditor.services;
 
-import com.example.CodeEditor.model.component.Snippet;
-import com.example.CodeEditor.repository.SnippetRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 public class SnippetService {

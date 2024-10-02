@@ -1,13 +1,16 @@
 package com.example.CodeEditor.services;
 
 import com.example.CodeEditor.model.users.editor.Editor;
+import com.example.CodeEditor.model.users.editor.EditorDirectory;
 import com.example.CodeEditor.repository.EditorRepository;
+import com.example.CodeEditor.services.fileSystem.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -19,6 +22,9 @@ public class EditorService {
     @Autowired
     private AuthenticationManager manager;
 
+    @Autowired
+    private StorageService storageService;
+
     public List<Editor> getAllEditors() {
         return editorRepository.findAll();
     }
@@ -29,7 +35,9 @@ public class EditorService {
         );
     }
 
-    public Editor addEditor(Editor editor) {
+    public Editor addEditor(Editor editor) throws IOException {
+        storageService.createUser(editor);
+        storageService.saveEditorDirObj(editor, new EditorDirectory());
         return editorRepository.save(editor);
     }
 
@@ -48,6 +56,10 @@ public class EditorService {
             return true;
         }
         return false;
+    }
+
+    public Editor getEditorByEmail(String email){
+        return editorRepository.findByEmail(email); // TODO: return optional not Editor!
     }
 
     public boolean authenticate(Editor editor){
