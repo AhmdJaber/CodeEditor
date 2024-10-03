@@ -1,5 +1,6 @@
 package com.example.CodeEditor.services.fileSystem;
 
+import com.example.CodeEditor.model.component.files.Snippet;
 import com.example.CodeEditor.model.users.editor.Editor;
 import com.example.CodeEditor.model.users.editor.EditorDirectory;
 import com.example.CodeEditor.utils.FileUtil;
@@ -18,26 +19,83 @@ public class StorageService {
     private FileUtil fileUtil;
 
     public void createUser(Editor editor){ // TODO: change it to general class like "User" or something
-        String userPath = path + editor.getId();
+        String userPath = path + "\\" + editor.getId();
         try{
             fileUtil.createFolder(userPath);
-            fileUtil.createFolder(userPath + "\\tree"); //TODO: any better names?
+            fileUtil.createFolder(userPath + "\\tree\\snippets"); //TODO: any better names?
             fileUtil.createFolder(userPath + "\\0");
         } catch (Exception e){
             throw new IllegalStateException("Failed to create folder " + userPath, e);
         }
     }
 
-    public void saveEditorDirObj(Editor editor, EditorDirectory editorDirectory) throws IOException {
-        String dirPath = path + "\\" + editor.getId() + "\\tree\\";
-        File dir = new File(dirPath);
-        if (!dir.exists()){
-            if (!dir.mkdirs()){
-                System.out.println("Directory " + dirPath + " already exists!");
-            } else{
-                System.out.println("Directory " + dirPath + " created");
+    public void createFolderIfNotExists(String path){
+        File file = new File(path);
+        if (!file.exists()){
+            if (!file.mkdir()){
+                throw new IllegalStateException("Failed to create folder " + path);
+            } else {
+                System.out.println("Folder " + path + " created!");
             }
         }
+    }
+
+    public void createSnippet(Editor editor, Snippet snippet) throws IOException {
+        String snippetsPath = path + "\\" + editor.getId() + "\\tree\\snippets";
+        createFolderIfNotExists(snippetsPath);
+
+        String fileName = snippet.getId() + "_" + snippet.getName();
+        Path path = Paths.get(snippetsPath + "\\" + fileName);
+        Files.createFile(path);
+        String extension = snippet.getName().substring(snippet.getName().lastIndexOf(".") + 1);
+        String content = getString(extension);
+
+        Files.write(path, content.getBytes());
+    }
+
+    private static String getString(String extension) { // TODO: move it to utils?
+        if (extension.equals("cpp")) {
+            return "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n\t//Start Coding\n\tcout << \"Hello World!\";\n}";
+        }
+        else if (extension.equals("java")) {
+            return "public class HelloWorld {\n\n\tpublic static void main(String[] args) {\n\t\t//Start Coding\n\t\tSystem.out.println(\"Hello World!\");\n\t}\n}";
+        }
+        else if (extension.equals("py")) {
+            return "#Start Coding\nprint(\"Hello World!\")";
+        }
+        return "Nothing\n\n Extension " + extension + " not allowed";
+    }
+
+    public void deleteSnippet(Editor editor, Snippet snippet) throws IOException {// TODO: Move to SnippetStorageService
+        String snippetsPath = path + "\\" + editor.getId() + "\\tree\\snippets";
+        createFolderIfNotExists(snippetsPath);
+
+        String fileName = snippet.getId() + "_" + snippet.getName();
+        Path path = Paths.get(snippetsPath + "\\" + fileName);
+        Files.delete(path);
+    }
+
+    public String loadSnippet(Editor editor, Snippet snippet) throws IOException {
+        String snippetsPath = path + "\\" + editor.getId() + "\\tree\\snippets";
+        createFolderIfNotExists(snippetsPath);
+
+        String fileName = snippet.getId() + "_" + snippet.getName();
+        Path path = Paths.get(snippetsPath + "\\" + fileName);
+        return Files.readString(path);
+    }
+
+    public void updateSnippet(Editor editor, Snippet snippet, String updatedContent) throws IOException {
+        String snippetsPath = path + "\\" + editor.getId() + "\\tree\\snippets";
+        createFolderIfNotExists(snippetsPath);
+
+        String fileName = snippet.getId() + "_" + snippet.getName();
+        Path path = Paths.get(snippetsPath + "\\" + fileName);
+        Files.write(path, updatedContent.getBytes());
+    }
+
+    public void saveEditorDirObj(Editor editor, EditorDirectory editorDirectory) throws IOException {
+        String dirPath = path + "\\" + editor.getId() + "\\tree\\";
+        createFolderIfNotExists(dirPath);
 
         File file = new File(dirPath + editor.getId() + "_treeObject.ser");
         try (FileOutputStream fileOutStream = new FileOutputStream(file);
@@ -60,9 +118,7 @@ public class StorageService {
         try(FileInputStream fileInStream = new FileInputStream(file);
                 ObjectInputStream objectInStream = new ObjectInputStream(fileInStream)) {
 
-            Object obj = objectInStream.readObject();
-            EditorDirectory editorDirectory = (EditorDirectory) obj;
-            return editorDirectory;
+            return (EditorDirectory) objectInStream.readObject();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -38,12 +38,20 @@ public class SnippetController {
     }
 
     @DeleteMapping("/delete")
-    public void deleteFolder(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
+    public void deleteSnippet(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
         System.out.println(snippet);
         String token = reqToken.replace("Bearer ", "");
         String email = jwtService.getName(token);
         Editor editor = editorService.getEditorByEmail(email);
         snippetService.removeSnippet(editor, snippet);
+    }
+
+    @PostMapping("/content")
+    public String getSnippetContent(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.getName(token);
+        Editor editor = editorService.getEditorByEmail(email);
+        return snippetService.loadSnippet(editor, snippet);
     }
 
     @PostMapping("/execute")

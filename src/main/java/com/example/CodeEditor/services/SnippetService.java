@@ -27,15 +27,22 @@ public class SnippetService {
         EditorDirectory editorDirectory = storageService.loadEditorDirObj(editor);
         editorDirectory.getTree().get(snippet.getParentId()).getFiles().add(snippet);
         storageService.saveEditorDirObj(editor, editorDirectory);
+        storageService.createSnippet(editor, snippet);
         return snippetId;
     }
 
     public void removeSnippet(Editor editor, Snippet snippet) throws IOException {
         EditorDirectory editorDirectory = storageService.loadEditorDirObj(editor);
-        System.out.println("here is the info: "); //TODO: remove
-        System.out.println(snippet);
-        System.out.println(editorDirectory);
         editorDirectory.getTree().get(snippet.getParentId()).getFiles().remove(snippet); // TODO: is it really deletes the object?
         storageService.saveEditorDirObj(editor, editorDirectory);
+        storageService.deleteSnippet(editor, snippet);
+    }
+
+    public void updateSnippet(Editor editor, Snippet snippet, String updatedContent) throws IOException {
+        storageService.updateSnippet(editor, snippet, updatedContent);
+    }
+
+    public String loadSnippet(Editor editor, Snippet snippet) throws IOException {
+        return storageService.loadSnippet(editor, snippet);
     }
 }
