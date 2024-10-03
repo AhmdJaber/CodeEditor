@@ -75,20 +75,20 @@ public class StorageService {
         Files.delete(path);
     }
 
-    public String loadSnippet(Editor editor, Snippet snippet) throws IOException {
+    public String loadSnippet(Editor editor, Long id, String name) throws IOException {
         String snippetsPath = path + "\\" + editor.getId() + "\\tree\\snippets";
         createFolderIfNotExists(snippetsPath);
 
-        String fileName = snippet.getId() + "_" + snippet.getName();
+        String fileName = id + "_" + name;
         Path path = Paths.get(snippetsPath + "\\" + fileName);
         return Files.readString(path);
     }
 
-    public void updateSnippet(Editor editor, Snippet snippet, String updatedContent) throws IOException {
+    public void updateSnippet(Editor editor, Long id, String name, String updatedContent) throws IOException {
         String snippetsPath = path + "\\" + editor.getId() + "\\tree\\snippets";
         createFolderIfNotExists(snippetsPath);
 
-        String fileName = snippet.getId() + "_" + snippet.getName();
+        String fileName = id + "_" + name;
         Path path = Paths.get(snippetsPath + "\\" + fileName);
         Files.write(path, updatedContent.getBytes());
     }

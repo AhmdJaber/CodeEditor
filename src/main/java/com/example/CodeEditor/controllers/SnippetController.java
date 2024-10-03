@@ -39,19 +39,26 @@ public class SnippetController {
 
     @DeleteMapping("/delete")
     public void deleteSnippet(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
-        System.out.println(snippet);
         String token = reqToken.replace("Bearer ", "");
         String email = jwtService.getName(token);
         Editor editor = editorService.getEditorByEmail(email);
         snippetService.removeSnippet(editor, snippet);
     }
 
-    @PostMapping("/content")
-    public String getSnippetContent(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
+    @GetMapping("/content/{id}/{name}")
+    public String getSnippetContent(@PathVariable Long id, @PathVariable String name, @RequestHeader("Authorization") String reqToken) throws IOException {
         String token = reqToken.replace("Bearer ", "");
         String email = jwtService.getName(token);
         Editor editor = editorService.getEditorByEmail(email);
-        return snippetService.loadSnippet(editor, snippet);
+        return snippetService.loadSnippet(editor, id, name);
+    }
+
+    @PutMapping("/update/{id}/{name}")
+    public void updateSnippet(@PathVariable Long id, @PathVariable String name, @RequestBody String content, @RequestHeader("Authorization") String reqToken) throws IOException {
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.getName(token);
+        Editor editor = editorService.getEditorByEmail(email);
+        snippetService.updateSnippet(editor, id, name, content);
     }
 
     @PostMapping("/execute")

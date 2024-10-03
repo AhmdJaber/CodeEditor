@@ -1,8 +1,6 @@
 package com.example.CodeEditor.services;
 
 import com.example.CodeEditor.model.component.files.File;
-import com.example.CodeEditor.model.component.files.FileNode;
-import com.example.CodeEditor.model.component.files.Folder;
 import com.example.CodeEditor.model.component.files.Snippet;
 import com.example.CodeEditor.model.users.editor.Editor;
 import com.example.CodeEditor.model.users.editor.EditorDirectory;
@@ -11,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 @Service
 public class SnippetService {
@@ -33,16 +30,17 @@ public class SnippetService {
 
     public void removeSnippet(Editor editor, Snippet snippet) throws IOException {
         EditorDirectory editorDirectory = storageService.loadEditorDirObj(editor);
-        editorDirectory.getTree().get(snippet.getParentId()).getFiles().remove(snippet); // TODO: is it really deletes the object?
+        editorDirectory.getTree().get(snippet.getParentId()).getFiles().remove(snippet); // TODO: it deletes the object?
         storageService.saveEditorDirObj(editor, editorDirectory);
         storageService.deleteSnippet(editor, snippet);
     }
 
-    public void updateSnippet(Editor editor, Snippet snippet, String updatedContent) throws IOException {
-        storageService.updateSnippet(editor, snippet, updatedContent);
+    public void updateSnippet(Editor editor, Long id, String name, String updatedContent) throws IOException {
+        storageService.updateSnippet(editor, id, name, updatedContent);
+        System.out.println("Snippet " + id + "_" + name + " has been updated");
     }
 
-    public String loadSnippet(Editor editor, Snippet snippet) throws IOException {
-        return storageService.loadSnippet(editor, snippet);
+    public String loadSnippet(Editor editor, Long id, String name) throws IOException {
+        return storageService.loadSnippet(editor, id, name);
     }
 }

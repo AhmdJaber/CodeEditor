@@ -32,9 +32,9 @@ public class SecurityConfig {
                 .csrf(customizer -> customizer.disable())
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(
-                                "/editor/*",
-                                "/snippet/*", // TODO: should I remove them?
-                                "/folder/*"
+                                "/editor/**",
+                                "/snippet/**", // TODO: should I remove them?
+                                "/folder/**"
                                 )
                                 .permitAll()
                                 .anyRequest()

@@ -35,7 +35,7 @@ public class FolderService {
         System.out.println("here is the info: "); //TODO: remove
         System.out.println(folder);
         System.out.println(editorDirectory);
-        editorDirectory.getTree().get(folder.getParentId()).getFiles().remove(folder); // TODO: check if it really delete the object?
+        editorDirectory.getTree().get(folder.getParentId()).getFiles().remove(folder); // TODO: delete the object?
         editorDirectory.getTree().remove(folder.getId());
         storageService.saveEditorDirObj(editor, editorDirectory);
     }
