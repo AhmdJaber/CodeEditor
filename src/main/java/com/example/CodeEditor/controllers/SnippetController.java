@@ -1,9 +1,12 @@
 package com.example.CodeEditor.controllers;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.example.CodeEditor.model.component.files.Snippet;
+import com.example.CodeEditor.model.users.editor.Editor;
+import com.example.CodeEditor.security.jwt.JWTService;
+import com.example.CodeEditor.services.EditorService;
+import com.example.CodeEditor.services.SnippetService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -15,8 +18,33 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequestMapping("/snippet")
 public class SnippetController {
-//    @PostMapping("/addFile")
-//    public boolean addFileToEditor(@RequestBody )
+    @Autowired
+    private SnippetService snippetService;
+
+    @Autowired
+    private JWTService jwtService;
+
+    @Autowired
+    private EditorService editorService;
+
+    @PostMapping("/create")
+    public Snippet addSnippet(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
+        System.out.println(snippet);
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.getName(token);
+        Editor editor = editorService.getEditorByEmail(email);
+        snippet.setId(snippetService.createSnippet(editor, snippet));
+        return snippet;
+    }
+
+    @DeleteMapping("/delete")
+    public void deleteFolder(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
+        System.out.println(snippet);
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.getName(token);
+        Editor editor = editorService.getEditorByEmail(email);
+        snippetService.removeSnippet(editor, snippet);
+    }
 
     @PostMapping("/execute")
     public String executeCode(@RequestBody Map<String, String> body) {
@@ -47,7 +75,7 @@ public class SnippetController {
             }
         }
         Files.deleteIfExists(directory);
-    }
+    } //TODO: remove
 
     public String javaExecutor(String code){
         code = code.replace("\\n", "\n").replace("\\r", "\r").replace("\\\"", "\"");
@@ -105,7 +133,7 @@ public class SnippetController {
                 System.out.println("Failed to clean up directory: " + ioException.getMessage());
             }
         }
-    }
+    } //TODO: clean
 
     public String cppExecutor(String code){
         code = code.replace("\\n", "\n").replace("\\r", "\r").replace("\\\"", "\"");
@@ -154,7 +182,7 @@ public class SnippetController {
                 System.out.println("Failed to clean up directory: " + ioException.getMessage());
             }
         }
-    }
+    } //TODO: clean
 
     public String pyExecutor(String code){
         code = code.replace("\\n", "\n").replace("\\r", "\r").replace("\\\"", "\"");
@@ -203,5 +231,5 @@ public class SnippetController {
             }
         }
 
-    }
+    } //TODO: clean
 }

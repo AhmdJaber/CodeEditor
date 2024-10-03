@@ -15,15 +15,15 @@ public class Folder extends File implements Serializable {
         super.setId(id);
         super.setName(name);
         super.setParentId(parentId);
-        super.setIsFolder(true);
+        super.setIsFolder(true); //TODO: remove
     }
 
     @Override
     public String toString() {
         return "Folder{" +
                 "name='" + super.getName() + '\'' +
-                ", id=" + super.getId() + '\'' +
                 ", parentId=" + super.getParentId() +
+                ", id=" + super.getId() + '\'' +
                 '}';
     }
 }

@@ -45,6 +45,8 @@ public class EditorController {
         if (editor == null) {
             throw new FileNotFoundException();
         }
-        return storageService.loadEditorDirObj(editor);
+        EditorDirectory editorDirectory = storageService.loadEditorDirObj(editor);
+        System.out.println(editorDirectory);
+        return editorDirectory;
     }
 }
