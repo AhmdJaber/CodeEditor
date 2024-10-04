@@ -1,5 +1,6 @@
-package com.example.CodeEditor.newSecurity.jwt;
+package com.example.CodeEditor.security.jwt;
 
+import com.example.CodeEditor.repository.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +23,12 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private TokenRepository tokenRepository;
+
     private final UserDetailsService userDetailsService;
+
 
     @Override
     protected void doFilterInternal(
@@ -39,7 +45,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String email = jwtService.extractUsername(jwt);
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+            boolean isTokenValid = tokenRepository.findByToken(jwt)
+                    .map(token -> !token.isExpired() && !token.isRevoked())
+                    .orElse(false);
+            if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,

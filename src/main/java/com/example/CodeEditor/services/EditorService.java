@@ -39,10 +39,10 @@ public class EditorService {
         );
     }
 
-    public Client addEditor(Client editor) throws IOException {
+    public void addEditor(Client editor) throws IOException {
         storageService.createUser(editor);
         storageService.saveEditorDirObj(editor, new EditorDirectory());
-        return clientRepository.save(editor);
+        clientRepository.save(editor);
     }
 
     public Editor updateEditor(Long id, Editor updatedEditor) {

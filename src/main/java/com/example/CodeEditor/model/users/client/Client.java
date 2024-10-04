@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table
 @Data
 @Builder
 @NoArgsConstructor
@@ -29,6 +28,8 @@ public class Client implements UserDetails {
     private String password;
     @Enumerated(EnumType.STRING)
     private Role role;
+    @OneToMany(mappedBy = "client")
+    private List<Token> tokens;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -2,8 +2,7 @@ package com.example.CodeEditor.controllers;
 
 import com.example.CodeEditor.model.component.files.Folder;
 import com.example.CodeEditor.model.users.client.Client;
-import com.example.CodeEditor.model.users.editor.Editor;
-import com.example.CodeEditor.newSecurity.jwt.JwtService;
+import com.example.CodeEditor.security.jwt.JwtService;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.services.EditorService;
 import com.example.CodeEditor.services.FolderService;

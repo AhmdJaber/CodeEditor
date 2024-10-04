@@ -3,14 +3,13 @@ package com.example.CodeEditor.controllers;
 import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.model.users.editor.Editor;
 import com.example.CodeEditor.model.users.editor.EditorDirectory;
-import com.example.CodeEditor.newSecurity.jwt.JwtService;
+import com.example.CodeEditor.security.jwt.JwtService;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.services.EditorService;
 import com.example.CodeEditor.services.fileSystem.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 

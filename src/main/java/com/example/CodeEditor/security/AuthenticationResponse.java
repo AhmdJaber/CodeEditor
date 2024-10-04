@@ -1,4 +1,4 @@
-package com.example.CodeEditor.newSecurity;
+package com.example.CodeEditor.security;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

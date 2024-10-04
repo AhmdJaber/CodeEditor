@@ -1,6 +1,6 @@
 package com.example.CodeEditor.controllers.auth;
 
-import com.example.CodeEditor.newSecurity.AuthenticationResponse;
+import com.example.CodeEditor.security.AuthenticationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
