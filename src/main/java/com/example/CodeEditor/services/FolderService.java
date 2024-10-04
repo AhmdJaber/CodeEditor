@@ -3,6 +3,7 @@ package com.example.CodeEditor.services;
 import com.example.CodeEditor.model.component.files.File;
 import com.example.CodeEditor.model.component.files.FileNode;
 import com.example.CodeEditor.model.component.files.Folder;
+import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.model.users.editor.Editor;
 import com.example.CodeEditor.model.users.editor.EditorDirectory;
 import com.example.CodeEditor.services.fileSystem.StorageService;
@@ -20,7 +21,7 @@ public class FolderService {
     @Autowired
     private FileService fileService;
 
-    public Long createFolder(Editor editor, Folder folder) throws IOException {
+    public Long createFolder(Client editor, Folder folder) throws IOException {
         Long folderId = fileService.createFile(new File(folder.getName(), folder.getParentId())).getId();
         folder.setId(folderId);
         EditorDirectory editorDirectory = storageService.loadEditorDirObj(editor);
@@ -30,7 +31,7 @@ public class FolderService {
         return folderId;
     }
 
-    public void removeFolder(Editor editor, Folder folder) throws IOException {
+    public void removeFolder(Client editor, Folder folder) throws IOException {
         EditorDirectory editorDirectory = storageService.loadEditorDirObj(editor);
         System.out.println("here is the info: "); //TODO: remove
         System.out.println(folder);

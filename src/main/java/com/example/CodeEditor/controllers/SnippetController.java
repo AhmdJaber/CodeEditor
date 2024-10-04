@@ -1,8 +1,10 @@
 package com.example.CodeEditor.controllers;
 
 import com.example.CodeEditor.model.component.files.Snippet;
+import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.model.users.editor.Editor;
-import com.example.CodeEditor.security.jwt.JWTService;
+import com.example.CodeEditor.newSecurity.jwt.JwtService;
+import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.services.EditorService;
 import com.example.CodeEditor.services.SnippetService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +24,19 @@ public class SnippetController {
     private SnippetService snippetService;
 
     @Autowired
-    private JWTService jwtService;
+    private JwtService jwtService;
 
     @Autowired
     private EditorService editorService;
+    @Autowired
+    private ClientRepository clientRepository;
 
     @PostMapping("/create")
     public Snippet addSnippet(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
         System.out.println(snippet);
         String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.getName(token);
-        Editor editor = editorService.getEditorByEmail(email);
+        String email = jwtService.extractUsername(token);
+        Client editor = clientRepository.findByEmail(email).orElseThrow();
         snippet.setId(snippetService.createSnippet(editor, snippet));
         return snippet;
     }
@@ -40,24 +44,24 @@ public class SnippetController {
     @DeleteMapping("/delete")
     public void deleteSnippet(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
         String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.getName(token);
-        Editor editor = editorService.getEditorByEmail(email);
+        String email = jwtService.extractUsername(token);
+        Client editor = clientRepository.findByEmail(email).orElseThrow();
         snippetService.removeSnippet(editor, snippet);
     }
 
     @GetMapping("/content/{id}/{name}")
     public String getSnippetContent(@PathVariable Long id, @PathVariable String name, @RequestHeader("Authorization") String reqToken) throws IOException {
         String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.getName(token);
-        Editor editor = editorService.getEditorByEmail(email);
+        String email = jwtService.extractUsername(token);
+        Client editor = clientRepository.findByEmail(email).orElseThrow();
         return snippetService.loadSnippet(editor, id, name);
     }
 
     @PutMapping("/update/{id}/{name}")
     public void updateSnippet(@PathVariable Long id, @PathVariable String name, @RequestBody String content, @RequestHeader("Authorization") String reqToken) throws IOException {
         String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.getName(token);
-        Editor editor = editorService.getEditorByEmail(email);
+        String email = jwtService.extractUsername(token);
+        Client editor = clientRepository.findByEmail(email).orElseThrow();
         snippetService.updateSnippet(editor, id, name, content);
     }
 

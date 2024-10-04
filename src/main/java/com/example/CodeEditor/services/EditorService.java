@@ -1,7 +1,9 @@
 package com.example.CodeEditor.services;
 
+import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.model.users.editor.Editor;
 import com.example.CodeEditor.model.users.editor.EditorDirectory;
+import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.EditorRepository;
 import com.example.CodeEditor.services.fileSystem.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,8 @@ public class EditorService {
 
     @Autowired
     private StorageService storageService;
+    @Autowired
+    private ClientRepository clientRepository;
 
     public List<Editor> getAllEditors() {
         return editorRepository.findAll();
@@ -35,10 +39,10 @@ public class EditorService {
         );
     }
 
-    public Editor addEditor(Editor editor) throws IOException {
+    public Client addEditor(Client editor) throws IOException {
         storageService.createUser(editor);
         storageService.saveEditorDirObj(editor, new EditorDirectory());
-        return editorRepository.save(editor);
+        return clientRepository.save(editor);
     }
 
     public Editor updateEditor(Long id, Editor updatedEditor) {

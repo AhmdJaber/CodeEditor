@@ -1,8 +1,10 @@
 package com.example.CodeEditor.controllers;
 
+import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.model.users.editor.Editor;
 import com.example.CodeEditor.model.users.editor.EditorDirectory;
-import com.example.CodeEditor.security.jwt.JWTService;
+import com.example.CodeEditor.newSecurity.jwt.JwtService;
+import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.services.EditorService;
 import com.example.CodeEditor.services.fileSystem.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,31 +22,22 @@ public class EditorController {
     private EditorService editorService;
 
     @Autowired
-    private JWTService jwtService;
+    private JwtService jwtService;
 
     @Autowired
     private StorageService storageService;
+    @Autowired
+    private ClientRepository clientRepository;
 
     @GetMapping("/get")
     public List<Editor> getAllEditors(){
         return editorService.getAllEditors();
     }
 
-    @PostMapping("/login")
-    public String login(@RequestBody Editor editor) { //TODO: is it better to return a ResponseEntity<> ??
-        if (editorService.authenticate(editor)){
-            return jwtService.getToken(editor.getEmail(), "editor");
-        }
-        return "";
-    }
-
     @GetMapping("/directory")
-    public EditorDirectory getEditorDirectory(@RequestHeader("Authorization") String token) throws IOException {
-        String email = jwtService.getName(token.replace("Bearer ", ""));
-        Editor editor = editorService.getEditorByEmail(email);
-        if (editor == null) {
-            throw new FileNotFoundException();
-        }
+    public EditorDirectory getEditorDirectory(@RequestHeader("Authorization") String token) throws IOException { // TODO: clean "security"?
+        String email = jwtService.extractUsername(token.replace("Bearer ", ""));
+        Client editor = clientRepository.findByEmail(email).orElseThrow();
         EditorDirectory editorDirectory = storageService.loadEditorDirObj(editor);
         System.out.println(editorDirectory);
         return editorDirectory;

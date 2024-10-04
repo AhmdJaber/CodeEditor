@@ -12,11 +12,11 @@ import java.nio.file.Paths;
 public class FileUtil {
     public void createFolder(String folderPath){
         File folder = new File(folderPath);
-        if (folder.exists()) {
-            throw new IllegalStateException("The Folder is Already Exists");
-        }
-        if (!folder.mkdir()) {
-            throw new IllegalStateException("Something Went Wrong While Creating The Folder");
+        if (!folder.exists()) {
+            if (!folder.mkdir()) {
+                System.out.println(folderPath);
+                throw new IllegalStateException("Something Went Wrong While Creating The Folder");
+            }
         }
     }
 
