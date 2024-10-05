@@ -16,23 +16,33 @@ import java.util.function.Function;
 @Service
 public class JwtService {
     private static final String key = "54c115112bf2308122c6f1470a299dac2c47e3edcf1beed674dbc9782e10f8ee";
+    private static final Long access_expiration = 900000L; // 15 minutes
+    private static final Long refresh_expiration = 604800000L; // 1 week
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+    public String generateAccessToken(UserDetails userDetails) {
+        return generateAccessToken(new HashMap<>(), userDetails);
     }
 
-    public String generateToken(Map<String, Object> claims, UserDetails userDetails) {
+    public String generateAccessToken(Map<String, Object> claims, UserDetails userDetails) {
+        return buildToken(claims, userDetails, access_expiration);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return buildToken(new HashMap<>(), userDetails, refresh_expiration);
+    }
+
+    public String buildToken(Map<String, Object> claims, UserDetails userDetails, Long expiration){
         return Jwts
                 .builder()
                 .claims()
                 .add(claims)
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
                 .and()
                 .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(key)))
                 .compact();

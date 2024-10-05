@@ -3,13 +3,17 @@ package com.example.CodeEditor.controllers.auth;
 import com.example.CodeEditor.enums.Role;
 import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.model.users.client.Token;
+import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.TokenRepository;
 import com.example.CodeEditor.security.AuthenticationResponse;
 import com.example.CodeEditor.security.jwt.JwtService;
-import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.services.EditorService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -51,9 +55,10 @@ public class AuthenticationService {
         if (Role.valueOf(role) == Role.EDITOR){
             editorService.addEditor(client);
         }
-        String jwtToken = jwtService.generateToken(client);
-        saveClientToken(savedClient, jwtToken);
-        return new AuthenticationResponse(jwtToken);
+        String accessToken = jwtService.generateAccessToken(client);
+        String refreshToken = jwtService.generateRefreshToken(client);
+        saveClientToken(savedClient, accessToken);
+        return new AuthenticationResponse(accessToken, refreshToken);
     }
 
     private void saveClientToken(Client client, String jwtToken) {
@@ -76,12 +81,14 @@ public class AuthenticationService {
         );
 
         Client client = clientRepository.findByEmail(request.getEmail()).orElseThrow();
-        String token = jwtService.generateToken(client);
-        saveClientToken(client, token);
-        return new AuthenticationResponse(token);
+        String accessToken = jwtService.generateAccessToken(client);
+        String refreshToken = jwtService.generateRefreshToken(client);
+        deleteAllClientExpiredTokens(client);
+        saveClientToken(client, accessToken);
+        return new AuthenticationResponse(accessToken, refreshToken);
     }
 
-    public void deleteAllClientExpiredTokens(Client client, String jwtToken){
+    public void deleteAllClientExpiredTokens(Client client){
         List<Token> tokens = tokenRepository.findAllValidTokenClient(client.getId());
         if (tokens.isEmpty()){
             return;
@@ -90,7 +97,31 @@ public class AuthenticationService {
         for (Token token : tokens){
             token.setExpired(true);
             token.setRevoked(true);
+            // TODO: delete the expired tokens?
         }
         tokenRepository.saveAll(tokens);
+    }
+
+    public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return null;
+        }
+
+        final String refreshToken = authorizationHeader.substring(7);
+        final String email = jwtService.extractUsername(refreshToken);
+        if (email != null) {
+            Client client = this.clientRepository.findByEmail(email).orElseThrow();
+            if (jwtService.isTokenValid(refreshToken, client)) {
+                String accessToken = jwtService.generateAccessToken(client);
+                deleteAllClientExpiredTokens(client);
+                saveClientToken(client, accessToken);
+                AuthenticationResponse authResponse = new AuthenticationResponse(accessToken, refreshToken);
+                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+                return authResponse;
+            }
+        }
+
+        return null;
     }
 }
