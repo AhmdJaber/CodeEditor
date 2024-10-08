@@ -94,12 +94,13 @@ public class AuthenticationService {
             return;
         }
 
-        for (Token token : tokens){
-            token.setExpired(true);
-            token.setRevoked(true);
-            // TODO: delete the expired tokens?
-        }
-        tokenRepository.saveAll(tokens);
+//        for (Token token : tokens){
+//            token.setExpired(true);
+//            token.setRevoked(true);
+//            // TODO: delete the expired tokens?
+//        }
+//        tokenRepository.saveAll(tokens);
+        tokenRepository.deleteAll(tokens);
     }
 
     public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {

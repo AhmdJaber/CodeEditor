@@ -37,11 +37,13 @@ public class ClientController {
         String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
         Client client = clientRepository.findByEmail(senderEmail).orElseThrow();
         if (!Objects.equals(client.getId(), ownerId)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You aren't allowed to share this project");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You aren't allowed to share this project");
         }
-        Client clientToShareWith = clientRepository.findByEmail(email).orElseThrow();
-        storageService.shareProject(clientToShareWith, projectId, ownerId);
-        // TODO: send the changes to the client screen (front-end) with websockets
-        return ResponseEntity.ok().build();
+        Client clientToShareWith = clientRepository.findByEmail(email).orElse(null);
+        if (clientToShareWith != null) {
+            storageService.shareProject(clientToShareWith, projectId, ownerId);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 }

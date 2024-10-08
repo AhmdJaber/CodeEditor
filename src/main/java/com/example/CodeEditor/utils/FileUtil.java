@@ -24,7 +24,9 @@ public class FileUtil {
     public void createFile(String filePath, String content){
         Path fileFullPath = Paths.get(filePath);
         try{
-            Files.createFile(fileFullPath);
+            if (!Files.exists(fileFullPath)) {
+                Files.createFile(fileFullPath);
+            }
         } catch (IOException e) {
             throw new IllegalArgumentException("Could not create the file " + fileFullPath);
         }
