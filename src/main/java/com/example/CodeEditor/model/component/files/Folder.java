@@ -27,12 +27,3 @@ public class Folder extends File implements Serializable {
                 '}';
     }
 }
-
-//TODO: what to do if the user created a folder?
-//TODO: do we need to create an ID for each folder?
-//TODO: if we don't, how can we know the parent of the folder to be added?
-//TODO: as we are adding the folder from the front-end, can we know the parent id from there (front-end)?
-//TODO: if yes, can we simply return the id of the parent to the folder?
-//TODO: but how could folders have an ID stored in the front-end?
-//TODO: can we return it from the here (back-end)?
-

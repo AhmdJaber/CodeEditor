@@ -16,7 +16,7 @@ import java.util.function.Function;
 @Service
 public class JwtService {
     private static final String key = "54c115112bf2308122c6f1470a299dac2c47e3edcf1beed674dbc9782e10f8ee";
-    private static final Long access_expiration = 900000L; // 15 minutes
+    private static final Long access_expiration = 3600000L; // 15 minutes
     private static final Long refresh_expiration = 604800000L; // 1 week
 
     public String extractUsername(String token) {

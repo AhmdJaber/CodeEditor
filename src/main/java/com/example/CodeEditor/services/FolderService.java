@@ -4,9 +4,7 @@ import com.example.CodeEditor.model.component.files.File;
 import com.example.CodeEditor.model.component.files.FileNode;
 import com.example.CodeEditor.model.component.files.Folder;
 import com.example.CodeEditor.model.users.client.Client;
-import com.example.CodeEditor.model.users.editor.Editor;
-import com.example.CodeEditor.model.users.editor.EditorDirectory;
-import com.example.CodeEditor.services.fileSystem.StorageService;
+import com.example.CodeEditor.model.users.editor.ProjectDirectory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,23 +19,23 @@ public class FolderService {
     @Autowired
     private FileService fileService;
 
-    public Long createFolder(Client editor, Folder folder) throws IOException {
+    public Long createFolder(Client editor, Folder folder, Long projectId) throws IOException {
         Long folderId = fileService.createFile(new File(folder.getName(), folder.getParentId())).getId();
         folder.setId(folderId);
-        EditorDirectory editorDirectory = storageService.loadEditorDirObj(editor);
-        editorDirectory.getTree().get(folder.getParentId()).getFiles().add(folder);
-        editorDirectory.getTree().put(folderId, new FileNode(folder.getName(), new ArrayList<>(), folder.getParentId()));
-        storageService.saveEditorDirObj(editor, editorDirectory);
+        ProjectDirectory projectDirectory = storageService.loadEditorDirObj(editor, projectId);
+        projectDirectory.getTree().get(folder.getParentId()).getFiles().add(folder);
+        projectDirectory.getTree().put(folderId, new FileNode(folder.getName(), new ArrayList<>(), folder.getParentId()));
+        storageService.saveProjectDirectory(editor, projectDirectory, projectId);
         return folderId;
     }
 
-    public void removeFolder(Client editor, Folder folder) throws IOException {
-        EditorDirectory editorDirectory = storageService.loadEditorDirObj(editor);
+    public void removeFolder(Client editor, Folder folder, Long projectId) throws IOException {
+        ProjectDirectory projectDirectory = storageService.loadEditorDirObj(editor, projectId);
         System.out.println("here is the info: "); //TODO: remove
         System.out.println(folder);
-        System.out.println(editorDirectory);
-        editorDirectory.getTree().get(folder.getParentId()).getFiles().remove(folder); // TODO: delete the object?
-        editorDirectory.getTree().remove(folder.getId());
-        storageService.saveEditorDirObj(editor, editorDirectory);
+        System.out.println(projectDirectory);
+        projectDirectory.getTree().get(folder.getParentId()).getFiles().remove(folder); // TODO: delete the object?
+        projectDirectory.getTree().remove(folder.getId());
+        storageService.saveProjectDirectory(editor, projectDirectory, projectId);
     }
 }

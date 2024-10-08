@@ -1,11 +1,10 @@
 package com.example.CodeEditor.model.users.client;
 
 import com.example.CodeEditor.enums.Role;
+import com.example.CodeEditor.model.component.files.Project;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +13,8 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,8 +28,14 @@ public class Client implements UserDetails {
     private String password;
     @Enumerated(EnumType.STRING)
     private Role role;
-    @OneToMany(mappedBy = "client")
+
+    @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Token> tokens;
+
+    @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Project> projects;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -64,5 +70,15 @@ public class Client implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Client{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", role=" + role +
+                '}';
     }
 }

@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 @Service
 public class FileUtil {
     public void createFolder(String folderPath){
+        System.out.println(folderPath);
         File folder = new File(folderPath);
         if (!folder.exists()) {
             if (!folder.mkdir()) {
@@ -35,6 +36,14 @@ public class FileUtil {
         }
     }
 
+    public File[] getSubFiles(String folderPath){
+        File folder = new File(folderPath);
+        if (!folder.exists()) {
+            return new File[]{};
+        }
+        return folder.listFiles();
+    }
+
     public void deleteFile(String filePath){
         Path fileFullPath = Paths.get(filePath);
         if(!Files.exists(fileFullPath)){
@@ -54,7 +63,10 @@ public class FileUtil {
             File[] files = folder.listFiles();
             if (files != null) {
                 for (File file : files) {
-                    if (!file.delete()) {
+                    if (file.isDirectory()) {
+                        deleteFolder(file.getAbsolutePath());
+                    }
+                    else if (!file.delete()) {
                         throw new IllegalStateException("Something Went Wrong While Deleting The File " + file.getAbsolutePath());
                     }
                 }

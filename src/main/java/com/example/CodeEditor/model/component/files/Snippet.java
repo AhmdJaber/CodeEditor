@@ -18,7 +18,6 @@ public class Snippet extends File implements Serializable {
         super.setIsFolder(false); //TODO: remove
     }
 
-
     @Override
     public String toString() {
         return "Snippet{" +

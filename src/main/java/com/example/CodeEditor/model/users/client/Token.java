@@ -1,14 +1,13 @@
 package com.example.CodeEditor.model.users.client;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import net.minidev.json.annotate.JsonIgnore;
 
 @Entity
 @Table
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,5 +20,16 @@ public class Token {
     private boolean revoked;
     @ManyToOne
     @JoinColumn(name = "client_id")
+    @JsonIgnore
     private Client client;
+
+    @Override
+    public String toString() {
+        return "Token{" +
+                "id=" + id +
+                ", token='" + token + '\'' +
+                ", expired=" + expired +
+                ", revoked=" + revoked +
+                '}';
+    }
 }

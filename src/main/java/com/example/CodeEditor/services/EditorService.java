@@ -2,10 +2,9 @@ package com.example.CodeEditor.services;
 
 import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.model.users.editor.Editor;
-import com.example.CodeEditor.model.users.editor.EditorDirectory;
+import com.example.CodeEditor.model.users.editor.ProjectDirectory;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.EditorRepository;
-import com.example.CodeEditor.services.fileSystem.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,9 +38,8 @@ public class EditorService {
         );
     }
 
-    public void addEditor(Client editor) throws IOException {
+    public void addEditor(Client editor) {
         storageService.createUser(editor);
-        storageService.saveEditorDirObj(editor, new EditorDirectory());
         clientRepository.save(editor);
     }
 

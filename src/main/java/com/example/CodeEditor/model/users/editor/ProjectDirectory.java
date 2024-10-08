@@ -12,12 +12,12 @@ import java.util.Map;
 
 @Data
 @ToString
-public class EditorDirectory implements Serializable {
+public class ProjectDirectory implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
     private Map<Long, FileNode> tree;
 
-    public EditorDirectory() {
+    public ProjectDirectory() {
         tree = new HashMap<>();
         tree.put(0L, new FileNode("", new ArrayList<>(), null));
     }

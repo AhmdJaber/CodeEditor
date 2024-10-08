@@ -23,45 +23,31 @@ public class SnippetController {
     private SnippetService snippetService;
 
     @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private EditorService editorService;
-    @Autowired
     private ClientRepository clientRepository;
 
-    @PostMapping("/create")
-    public Snippet addSnippet(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
-        System.out.println(snippet);
-        String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.extractUsername(token);
-        Client editor = clientRepository.findByEmail(email).orElseThrow();
-        snippet.setId(snippetService.createSnippet(editor, snippet));
+    @PostMapping("/create/{ownerId}/{projectId}")
+    public Snippet addSnippet(@RequestBody Snippet snippet, @PathVariable Long projectId, @PathVariable Long ownerId) throws IOException {
+        Client editor = clientRepository.findById(ownerId).orElseThrow();
+        snippet.setId(snippetService.createSnippet(editor, snippet, projectId));
         return snippet;
     }
 
-    @DeleteMapping("/delete")
-    public void deleteSnippet(@RequestBody Snippet snippet, @RequestHeader("Authorization") String reqToken) throws IOException {
-        String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.extractUsername(token);
-        Client editor = clientRepository.findByEmail(email).orElseThrow();
-        snippetService.removeSnippet(editor, snippet);
+    @DeleteMapping("/delete/{ownerId}/{projectId}")
+    public void deleteSnippet(@RequestBody Snippet snippet, @PathVariable Long projectId, @PathVariable Long ownerId) throws IOException {
+        Client editor = clientRepository.findById(ownerId).orElseThrow();
+        snippetService.removeSnippet(editor, snippet, projectId);
     }
 
-    @GetMapping("/content/{id}/{name}")
-    public String getSnippetContent(@PathVariable Long id, @PathVariable String name, @RequestHeader("Authorization") String reqToken) throws IOException {
-        String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.extractUsername(token);
-        Client editor = clientRepository.findByEmail(email).orElseThrow();
-        return snippetService.loadSnippet(editor, id, name);
+    @GetMapping("/content/{id}/{name}/{ownerId}/{projectId}")
+    public String getSnippetContent(@PathVariable Long id, @PathVariable String name, @PathVariable Long projectId, @PathVariable Long ownerId) throws IOException {
+        Client editor = clientRepository.findById(ownerId).orElseThrow();
+        return snippetService.loadSnippet(editor, id, name, projectId);
     }
 
-    @PutMapping("/update/{id}/{name}")
-    public void updateSnippet(@PathVariable Long id, @PathVariable String name, @RequestBody String content, @RequestHeader("Authorization") String reqToken) throws IOException {
-        String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.extractUsername(token);
-        Client editor = clientRepository.findByEmail(email).orElseThrow();
-        snippetService.updateSnippet(editor, id, name, content);
+    @PutMapping("/update/{id}/{name}/{ownerId}/{projectId}")
+    public void updateSnippet(@PathVariable Long id, @PathVariable String name, @RequestBody String content, @PathVariable Long projectId, @PathVariable Long ownerId) throws IOException {
+        Client editor = clientRepository.findById(ownerId).orElseThrow();
+        snippetService.updateSnippet(editor, id, name, content, projectId);
     }
 
     @PostMapping("/execute")
