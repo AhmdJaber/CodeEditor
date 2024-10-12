@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class StorageService { // TODO: split the storage service && Debugging && Exception Handling
@@ -120,13 +121,42 @@ public class StorageService { // TODO: split the storage service && Debugging &&
         return Files.readString(path);
     }
 
-    public void updateSnippet(Client client, Long id, String name, String updatedContent, Long projectId) throws IOException {
+    public void updateSnippet(Client client, Long id, String name, Map<String, Object> updatedContent, Long projectId) throws IOException {
         String snippetsPath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\snippets";
         createFolderIfNotExists(snippetsPath);
 
         String fileName = id + "_" + name;
         Path path = Paths.get(snippetsPath + "\\" + fileName);
-        Files.write(path, updatedContent.getBytes());
+        System.out.println("the updateContent is :" + updatedContent.get("changeData"));
+        try {
+            List<String> lines = Files.readAllLines(path);
+            updateTheContent(lines, updatedContent.get("changeData"));
+            System.out.println(lines);
+            Files.write(path, lines);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateTheContent(List<String> lines, Object changeData) {
+        if (!(changeData instanceof Map)) {
+            throw new RuntimeException("Not a json-like data");
+        }
+
+        int column = Integer.parseInt(((Map<?, ?>) changeData).get("column").toString());
+        int line = Integer.parseInt(((Map<?, ?>) changeData).get("line").toString());
+        String type = ((Map<?, ?>) changeData).get("type").toString();
+        String chr = ((Map<?, ?>) changeData).get("detail").toString();
+        System.out.println(column + " " + line + " " + type + " " + chr);
+        StringBuilder updatedLine = new StringBuilder(lines.get(line - 1));
+        if (type.equals("insert")){
+            updatedLine.insert(column - 1, chr);
+        } else if (type.equals("delete")){
+            updatedLine.deleteCharAt(column - 1);
+        } else if (type.equals("update")){
+            updatedLine.setCharAt(column - 1, chr.charAt(0));
+        }
+        lines.set(line - 1, updatedLine.toString());
     }
 
     public void saveProjectDirectory(Client client, ProjectDirectory projectDirectory, Long projectId) throws IOException {

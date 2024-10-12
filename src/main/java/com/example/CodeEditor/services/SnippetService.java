@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Service
 public class SnippetService {
@@ -34,7 +35,7 @@ public class SnippetService {
         storageService.deleteSnippet(editor, snippet, projectId);
     }
 
-    public void updateSnippet(Client editor, Long id, String name, String updatedContent, Long projectId) throws IOException {
+    public void updateSnippet(Client editor, Long id, String name, Map<String, Object> updatedContent, Long projectId) throws IOException {
         storageService.updateSnippet(editor, id, name, updatedContent, projectId);
         System.out.println("Snippet " + id + "_" + name + " has been updated");
     }
