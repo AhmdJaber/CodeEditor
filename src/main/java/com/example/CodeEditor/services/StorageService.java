@@ -121,42 +121,56 @@ public class StorageService { // TODO: split the storage service && Debugging &&
         return Files.readString(path);
     }
 
-    public void updateSnippet(Client client, Long id, String name, Map<String, Object> updatedContent, Long projectId) throws IOException {
+    public synchronized void updateSnippet(Client client, Long id, String name, Map<String, Object> updatedContent, Long projectId) throws IOException {
         String snippetsPath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\snippets";
         createFolderIfNotExists(snippetsPath);
 
         String fileName = id + "_" + name;
         Path path = Paths.get(snippetsPath + "\\" + fileName);
-        System.out.println("the updateContent is :" + updatedContent.get("changeData"));
+        List<Map<String, Object>> changeQueue = (List<Map<String, Object>>) updatedContent.get("changeQueue");
         try {
-            List<String> lines = Files.readAllLines(path);
-            updateTheContent(lines, updatedContent.get("changeData"));
-            System.out.println(lines);
-            Files.write(path, lines);
+            for(Map<String, Object> change : changeQueue){
+                String content = Files.readString(path);
+                String updated = updateTheContent(content, change);
+                Files.write(path, updated.getBytes());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void updateTheContent(List<String> lines, Object changeData) {
+    private synchronized String updateTheContent(String content, Object changeData) {
         if (!(changeData instanceof Map)) {
-            throw new RuntimeException("Not a json-like data");
+            throw new RuntimeException("Not a Json data");
         }
 
-        int column = Integer.parseInt(((Map<?, ?>) changeData).get("column").toString());
-        int line = Integer.parseInt(((Map<?, ?>) changeData).get("line").toString());
+        int index = Integer.parseInt(((Map<?, ?>) changeData).get("index").toString());
         String type = ((Map<?, ?>) changeData).get("type").toString();
         String chr = ((Map<?, ?>) changeData).get("detail").toString();
-        System.out.println(column + " " + line + " " + type + " " + chr);
-        StringBuilder updatedLine = new StringBuilder(lines.get(line - 1));
+        StringBuilder updatedContent = new StringBuilder(content);
+
         if (type.equals("insert")){
-            updatedLine.insert(column - 1, chr);
+            synchronized (this) {
+                updatedContent.insert(index, chr);
+            }
         } else if (type.equals("delete")){
-            updatedLine.deleteCharAt(column - 1);
+            int len = Integer.parseInt(chr);
+            synchronized (this) {
+                if (index == updatedContent.length() - 2 && updatedContent.charAt(updatedContent.length() - 1) == '\n'){
+                    updatedContent.deleteCharAt(updatedContent.length() - 1);
+                    updatedContent.deleteCharAt(updatedContent.length() - 1);
+                } else {
+                    updatedContent.delete(index, index + len);
+                }
+            }
         } else if (type.equals("update")){
-            updatedLine.setCharAt(column - 1, chr.charAt(0));
+            synchronized (this) {
+//                updatedContent.setCharAt(column - 1, chr.charAt(0));
+//                lines.set(line - 1, updatedContent.toString());
+            }
         }
-        lines.set(line - 1, updatedLine.toString());
+
+        return updatedContent.toString();
     }
 
     public void saveProjectDirectory(Client client, ProjectDirectory projectDirectory, Long projectId) throws IOException {
