@@ -21,6 +21,9 @@ public class StorageService { // TODO: split the storage service && Debugging &&
     private final String path = "C:\\Users\\ahmad\\OneDrive\\Desktop\\Atypon\\Capstone Project\\filesystem\\users";
     @Autowired
     private FileUtil fileUtil;
+//
+//    @Autowired
+//    private ProjectService projectService;
 
     public void createUser(Client client){ // TODO: change it to general class like "User" or something
         String userPath = path + "\\" + client.getId();
@@ -39,17 +42,36 @@ public class StorageService { // TODO: split the storage service && Debugging &&
             fileUtil.createFolder(projectPath);
             fileUtil.createFolder(projectPath + "\\tree");
             fileUtil.createFolder(projectPath + "\\snippets");
+            fileUtil.createFile(projectPath + "\\shared", "");
+            fileUtil.writeListOnFile(new ArrayList<>(), projectPath + "\\shared");
             saveProjectDirectory(client, new ProjectDirectory(), project.getId());
         } catch (Exception e){
             throw new IllegalStateException("Failed to create folders on " + projectPath, e);
         }
     }
 
+    public void deleteProject(Client client, long projectId){
+        String projectPath = path + "\\" + client.getId() + "\\projects\\" + projectId;
+        try{
+            List<Long> sharedWith = fileUtil.readListFromFile(projectPath + "\\shared");
+            for(Long sharedWithId : sharedWith){
+                fileUtil.deleteFile(path + "\\" + sharedWithId + "\\shared\\" + "\\" + client.getId() + "_" + projectId);
+            }
+            fileUtil.deleteFolder(projectPath);
+        } catch (Exception e){
+            throw new IllegalStateException("Failed to create folders on " + projectPath, e);
+        }
+    }
+
     public void shareProject(Client clientToShareWith, Long projectId, Long ownerId){
+        String listOfSharedPath = path + "\\" + ownerId + "\\projects\\" + projectId + "\\shared";
         String sharedPath = path + "\\" + clientToShareWith.getId() + "\\shared\\";
         createFolderIfNotExists(sharedPath);
         try {
             fileUtil.createFile(sharedPath + "\\" + ownerId + "_" + projectId, "");
+            List<Long> sharedWith = fileUtil.readListFromFile(listOfSharedPath);
+            sharedWith.add(clientToShareWith.getId());
+            fileUtil.writeListOnFile(sharedWith, listOfSharedPath);
         } catch (Exception e){
             throw new IllegalStateException("Failed to create folder " + sharedPath, e);
         }
@@ -203,4 +225,9 @@ public class StorageService { // TODO: split the storage service && Debugging &&
             throw new RuntimeException(e);
         }
     }
+
+//    public List<Long> getSharedWith(Client client, Long id) {
+//        String sharedPath = path + "\\" + client.getId() + "\\projects" + "\\" + id + "\\shared";
+//        return fileUtil.readListFromFile(sharedPath);
+//    }
 }

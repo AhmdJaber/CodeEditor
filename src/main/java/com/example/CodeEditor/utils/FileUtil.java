@@ -2,11 +2,11 @@ package com.example.CodeEditor.utils;
 
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Service
 public class FileUtil {
@@ -84,4 +84,21 @@ public class FileUtil {
         Path filePath = Path.of(fullPath);
         return Files.readString(filePath);
     }
+
+    public void writeListOnFile(List<Long> list, String filePath) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+            oos.writeObject(list);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to write the list on the path " + filePath);
+        }
+    }
+
+    public List<Long> readListFromFile(String filePath) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+            return (List<Long>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new IllegalArgumentException("Error deserializing the list: ");
+        }
+    }
+
 }

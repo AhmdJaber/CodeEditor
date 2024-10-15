@@ -7,6 +7,8 @@ import com.example.CodeEditor.security.jwt.JwtService;
 import com.example.CodeEditor.services.ProjectService;
 import com.example.CodeEditor.services.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -53,5 +55,19 @@ public class ProjectController {
         Project createdProject = projectService.create(project);
         storageService.createProject(client, createdProject);
         return createdProject;
+    }
+
+    @DeleteMapping("/delete/{projectId}/{ownerId}")
+    public ResponseEntity<String> deleteProject(@RequestHeader("Authorization") String reqToken, @PathVariable long projectId, @PathVariable long ownerId) {
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.extractUsername(token);
+        Client client = clientRepository.findByEmail(email).orElseThrow();
+        if (client.getId() != ownerId) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You aren't allowed to delete this project");
+        }
+
+        projectService.deleteProjectById(projectId);
+        storageService.deleteProject(client, projectId);
+        return ResponseEntity.ok("Project deleted successfully");
     }
 }
