@@ -14,6 +14,6 @@ public class FileNode implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String name;       //TODO: optimize this, take another look at the tree (map<Long, FileNode>)!
-    private List<File> files;
+    private List<FileItem> fileItems;
     private Long parentId;
 }

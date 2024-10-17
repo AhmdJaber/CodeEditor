@@ -1,9 +1,7 @@
 package com.example.CodeEditor.services;
 
-import com.example.CodeEditor.model.component.files.File;
 import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.users.client.Client;
-import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,9 +16,6 @@ public class ProjectService {
 
     @Autowired
     private StorageService storageService;
-
-    @Autowired
-    private ClientRepository clientRepository;
 
     public Project create(Project project) {
         return projectRepository.save(project);

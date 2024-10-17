@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-public class Snippet extends File implements Serializable {
+public class Snippet extends FileItem implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 

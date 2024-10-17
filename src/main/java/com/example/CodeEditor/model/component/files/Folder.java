@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-public class Folder extends File implements Serializable {
+public class Folder extends FileItem implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 

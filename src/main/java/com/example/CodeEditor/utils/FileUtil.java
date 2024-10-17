@@ -6,7 +6,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 @Service
 public class FileUtil {
@@ -85,20 +84,22 @@ public class FileUtil {
         return Files.readString(filePath);
     }
 
-    public void writeListOnFile(List<Long> list, String filePath) {
+    public void writeObjectOnFile(Object object, String filePath) {
+        if (!Files.exists(Paths.get(filePath))){
+            System.out.println("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATTTTTTTTTTTTTT????????????");
+        }
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
-            oos.writeObject(list);
+            oos.writeObject(object);
         } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to write the list on the path " + filePath);
+            throw new IllegalArgumentException("Failed to write the object on the path " + filePath);
         }
     }
 
-    public List<Long> readListFromFile(String filePath) {
+    public Object readObjectFromFile(String filePath) {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
-            return (List<Long>) ois.readObject();
+            return ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new IllegalArgumentException("Error deserializing the list: ");
         }
     }
-
 }

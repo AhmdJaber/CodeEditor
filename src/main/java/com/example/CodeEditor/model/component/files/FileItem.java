@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Table
 @Entity
 @NoArgsConstructor
-public class File implements Serializable{
+public class FileItem implements Serializable{
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -22,7 +22,7 @@ public class File implements Serializable{
     private Long parentId;
     private Boolean isFolder;
 
-    public File(String name, Long parentId) {
+    public FileItem(String name, Long parentId) {
         this.name = name;
         this.parentId = parentId;
     }
