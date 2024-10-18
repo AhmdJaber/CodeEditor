@@ -246,22 +246,18 @@ public class StorageService { // TODO: split the storage service && Exception Ha
     public ProjectDirectory loadEditorDirObj(Client client, Long projectId, String commit, String branchName) throws IOException {
         String filePath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\tree\\" + client.getId() + "_treeObject.ser";
         if (commit != null && branchName != null){
-           String folderPath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\.vcs\\branches\\" + branchName + "\\commits\\" + commit + "\\tree";
-           if (Files.exists(Paths.get(folderPath))){
-               File file = fileUtil.getSubFiles(folderPath)[0];
-               if (file.getName().startsWith("@")){
-                   filePath = fileUtil.readFileContents(file.getAbsolutePath());
-               } else {
-                   filePath = file.getAbsolutePath();
-               }
+           String treeObjectPath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\.vcs\\branches\\" + branchName + "\\commits\\" + commit + "\\tree\\" + client.getId() + "_treeObject.ser";
+           if (Files.exists(Paths.get(treeObjectPath))){
+               filePath = treeObjectPath;
            } else {
-               throw new IOException("No such folder " + folderPath);
+               throw new IOException("No such file " + treeObjectPath);
            }
         }
 
         return (ProjectDirectory) fileUtil.readObjectFromFile(filePath);
     }
 
+                        // TODO    :    VVVV   CCCC    SSSS
     public void vcsInit(Project project) throws IOException {
         long ownerId = project.getClient().getId();
         String vcsPath = path + "\\" + ownerId + "\\projects\\" + project.getId() + "\\.vcs";
@@ -295,7 +291,8 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             Long id = Long.parseLong(snippet.getName().split("_")[0]);
             fileUtil.createFile(commitsPath + "\\" + commitId + "\\snippets\\" + snippet.getName(), filesContent.get(id));
         }
-        fileUtil.createFile(path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\main\\current", commitId);
+        setCurrentCommit(project, "main", commitId);
+        writeOnLog(project, project.getClient(), commitId, "main", "Initial commit");
     }
 
     public void vcsCreateBranch(String vcsPath, String branchName) { //TODO: create the files and folders inside based on the cut from branch
@@ -310,6 +307,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         fileUtil.writeObjectOnFile(new HashMap<>(), vcsPath + "\\branches\\" + branchName + "\\changes");
         fileUtil.writeObjectOnFile(new HashMap<>(), vcsPath + "\\branches\\" + branchName + "\\tracked");
         fileUtil.writeObjectOnFile(new ArrayList<>(), vcsPath + "\\branches\\" + branchName + "\\log");
+        fileUtil.createFile(vcsPath + "\\branches\\" + branchName + "\\currentCommit", "");
         //TODO: create the rest of the files and directories (if any)
     }
 
@@ -325,7 +323,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
     }
 
     public String getCurrentCommit(Project project, String branchName) throws IOException {
-        String currentCommitPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\current";
+        String currentCommitPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\currentCommit";
         return fileUtil.readFileContents(currentCommitPath);
     }
 
@@ -343,7 +341,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         Map<Long, ChangeHolder> changes = vcsReadChanges(project, branchName);
         String filePath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\snippets\\" + fileItem.getId() + "_" + fileItem.getName();
         String content = null;
-        if (changeType == Change.UPDATE){
+        if (fileType == '-'){
             content = fileUtil.readFileContents(filePath);
         }
         ChangeHolder change = ChangeHolder.builder()
@@ -399,7 +397,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         String commitId = client.getId().toString() + "%" + Instant.now().getEpochSecond() + "%" + message.hashCode();
         String commitsPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\commits";
         Map<Long, ChangeHolder> tracked = vcsReadTracked(project, branchName);
-        Map<Long, FileNode> projectStructure = null;
+        ProjectDirectory projectStructure = null;
         boolean structureChanged = false;
         for(Long id : tracked.keySet()){
             ChangeHolder changeHolder = tracked.get(id);
@@ -409,18 +407,15 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             }
         }
         if (structureChanged){
-            projectStructure = loadEditorDirObj(project.getClient(), project.getId()).getTree();
+            projectStructure = loadEditorDirObj(project.getClient(), project.getId());
         }
         File[] allSnippets = fileUtil.getSubFiles(path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\snippets");
         Map<Long, String> filesContent = new HashMap<>();
         for(File snippet : allSnippets){
             String name = snippet.getName();
             Long id = Long.parseLong(name.split("_")[0]);
-            if (tracked.containsKey(id)){ //TODO: when updating the newly created file, does it takes it's content?
+            if (tracked.containsKey(id)){ //TODO: when updating the newly created file, does it takes it's content? yes, make sure
                 String content = tracked.get(id).getContent();
-                if (content == null){
-                    content = "";
-                }
                 filesContent.put(id, content);
             } else {
                 filesContent.put(id, null); // TODO: means we will take it from the previous commit (reference)
@@ -428,28 +423,75 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         }
 
         String prevCommitPath = commitsPath + "\\" + prevCommitId;
-        //TODO: exception handling (previous commit is not even exists?)
         fileUtil.createFolder(commitsPath + "\\" + commitId);
         fileUtil.createFolder(commitsPath + "\\" + commitId + "\\snippets");
         fileUtil.createFolder(commitsPath + "\\" + commitId + "\\tree");
         if (projectStructure != null){
             fileUtil.writeObjectOnFile(projectStructure, commitsPath + "\\" + commitId + "\\tree\\" + project.getClient().getId() + "_treeObject.ser");
         } else {
-            fileUtil.createFile(commitsPath + "\\" + commitId + "\\tree\\@_treeObject.ser", prevCommitPath + "\\tree\\" + project.getClient().getId() + "_treeObject.ser");
+            fileUtil.createLinkFile(prevCommitPath + "\\tree\\" + project.getClient().getId() + "_treeObject.ser", commitsPath + "\\" + commitId + "\\tree\\" + project.getClient().getId() + "_treeObject.ser");
         }
         for(File snippet: allSnippets){
             Long id = Long.parseLong(snippet.getName().split("_")[0]);
             if (filesContent.get(id) == null){
-                fileUtil.createFile(commitsPath + "\\" + commitId + "\\snippets\\@" + snippet.getName(), prevCommitPath + "\\snippets\\" + snippet.getName());
+                String prevFilePath = prevCommitPath + "\\snippets\\" + snippet.getName();
+                fileUtil.createLinkFile(prevFilePath, commitsPath + "\\" + commitId + "\\snippets\\" + snippet.getName());
             } else {
                 fileUtil.createFile(commitsPath + "\\" + commitId + "\\snippets\\" + snippet.getName(), filesContent.get(id));
             }
         }
+        writeOnLog(project, client, commitId, branchName, message);
+        setCurrentCommit(project, "main", commitId);
         return commitId;
         //TODO: think of scenarios
     }
 
-//    public List<String> log(Project project, String branchName){
+    public void setCurrentCommit(Project project, String branchName, String commitId){
+        String currentPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\currentCommit";
+        fileUtil.writeOnFile(Paths.get(currentPath), commitId);
+    }
+
+    public List<String> log(Project project, String branchName){
+        String logPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\log";
+        return (List<String>) fileUtil.readObjectFromFile(logPath);
+    }
+
+    public void writeOnLog(Project project, Client client, String commitId, String branchName, String message){
+        String newLog = "Commit Id:\t" + commitId + "\nAuthor   :\t" + client.getName() + " " + client.getEmail() + "\nDate     :\t\t" + Instant.now() + "\n\tMessage: " + message;
+        String logPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\log";
+        List<String> log = (List<String>) fileUtil.readObjectFromFile(logPath);
+        log.add(newLog);
+        fileUtil.writeObjectOnFile(log, logPath);
+    }
+
+    public void revert(Project project, String branchName, String commitId) throws IOException {
+        String projectPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId();
+        fileUtil.deleteFolder(projectPath + "\\snippets");
+        fileUtil.deleteFile(projectPath + "\\tree\\" + project.getClient().getId() + "_treeObject.ser");
+        fileUtil.createFolder(projectPath + "\\snippets");
+
+        String commitPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\commits\\" + commitId;
+        File[] snippets = fileUtil.getSubFiles(commitPath + "\\snippets");
+        String projectDirPath = commitPath + "\\tree\\" + project.getClient().getId() + "_treeObject.ser";
+        ProjectDirectory projectDirectory;
+        if (Files.isSymbolicLink(Paths.get(projectDirPath))){
+            projectDirectory = (ProjectDirectory) fileUtil.readObjectFromLink(projectDirPath);
+        } else {
+            projectDirectory = (ProjectDirectory) fileUtil.readObjectFromFile(projectDirPath);
+        }
+        fileUtil.writeObjectOnFile(projectDirectory, projectPath + "\\tree\\" + project.getClient().getId() + "_treeObject.ser");
+        for(File snippet: snippets){
+            String content;
+            if (Files.isSymbolicLink(snippet.toPath())){
+                content = fileUtil.readFromLink(snippet.getAbsolutePath());
+            } else {
+                content = fileUtil.readFileContents(snippet.getAbsolutePath());
+            }
+            fileUtil.createFile(projectPath + "\\snippets\\" + snippet.getName(), content);
+        }
+    }
+
+//    public String getSnippetContent(String snippetPath){
 //
 //    }
 }

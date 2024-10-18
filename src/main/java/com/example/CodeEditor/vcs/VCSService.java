@@ -33,8 +33,9 @@ public class VCSService {
         storageService.vcsDelete(project);
     }
 
-    public Map<String, List<String>> status(Long projectId, String branchName){
+    public Map<String, List<String>> status(Long projectId) throws IOException {
         Project project = projectRepository.findById(projectId).orElseThrow();
+        String branchName = storageService.getCurrentBranch(project);
         Map<Long, ChangeHolder> untrackedChanges = storageService.vcsReadChanges(project, branchName);
         Map<Long, ChangeHolder> trackedChanges = storageService.vcsReadTracked(project, branchName);
         Map<String, List<String>> status = new HashMap<>();
@@ -68,24 +69,39 @@ public class VCSService {
         return new ArrayList<>(); //TODO: change this to be list of strings of the changes (Files)
     }
 
-    // TODO: -------------------------------- :TODO
-    // TODO:      T      O      D      O      :TODO
-    // TODO: -------------------------------- :TODO
-    public List<String> log(Project project, String branchName){
-        return null; //TODO; Iterate over all the commits in the branch and display the id of each one
-        // TODO: Not that trivial?
+    public String log(Long projectId) throws IOException {
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        String branchName = storageService.getCurrentBranch(project);
+        List<String> logs = storageService.log(project, branchName);
+        StringBuilder log = new StringBuilder();
+        for (String currentLog : logs) {
+            log.append(currentLog).append("\n\n");
+        }
+        return log.toString();
     }
 
-    public List<String> commit(Project project, String branchName, Client client, String message, String prevCommitId) throws IOException {
-        String commitId = storageService.vcsCommitTracked(project, branchName, client, message, prevCommitId);
+    public List<String> commit(Long projectId, Client client, String message) throws IOException {
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        String branchName = storageService.getCurrentBranch(project);
+        String currentCommit = storageService.getCurrentCommit(project, branchName);
+        String commitId = storageService.vcsCommitTracked(project, branchName, client, message, currentCommit);
         return new ArrayList<>(); //TODO: make it return a list of String with all the tracked changes that have been commited
     }
 
-    public Snippet revert(Project project, String branchName, String commitId){
-        return null; //TODO: show the content of the requested commit
+    public void revert(Long projectId, String commitId) throws IOException {
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        String branchName = storageService.getCurrentBranch(project);
+        storageService.revert(project, branchName, commitId);
     }
 
-    public List<String> push(Project project, String branchName){
+    // TODO: -------------------------------- :TODO
+    // TODO:      T      O      D      O      :TODO
+    // TODO: -------------------------------- :TODO
+    public List<String> push(Project project){
         return null; //TODO: create the commit inside the branch (the snapshot that we created)
+    }
+
+    public boolean checkVCSDirectory(Project project){
+        return true; //TODO: from the filesystem, check if there is a .vcs directory
     }
 }

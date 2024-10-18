@@ -29,12 +29,43 @@ public class FileUtil {
         } catch (IOException e) {
             throw new IllegalArgumentException("Could not create the file " + fileFullPath);
         }
+        writeOnFile(fileFullPath, content);
+    }
 
+    public void writeOnFile(Path fileFullPath, String content){
         try{
             Files.write(fileFullPath, content.getBytes());
         } catch (IOException e) {
             throw new IllegalArgumentException("Could not write on the file " + fileFullPath);
         }
+    }
+
+
+    public void createLinkFile(String originalPath, String linkPath){
+        Path original = Paths.get(originalPath);
+        Path link = Paths.get(linkPath);
+
+        try{
+            Files.createSymbolicLink(link, original);
+        } catch (Exception e){
+            throw new IllegalArgumentException("Could not create the link " + linkPath);
+        }
+    }
+
+    public String readFromLink(String linkPath){
+        Path link = Paths.get(linkPath);
+
+        try{
+            return Files.readString(link);
+        } catch (Exception e){
+            throw new IllegalArgumentException("Could not read the link " + linkPath);
+        }
+    }
+
+    public Object readObjectFromLink(String linkPath) throws IOException {
+        Path link = Paths.get(linkPath);
+        Path targetPath = Files.readSymbolicLink(link);
+        return readObjectFromFile(targetPath.toString());
     }
 
     public File[] getSubFiles(String folderPath){
@@ -99,7 +130,7 @@ public class FileUtil {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             return ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            throw new IllegalArgumentException("Error deserializing the list: ");
+            throw new IllegalArgumentException("Error deserializing the Object");
         }
     }
 }
