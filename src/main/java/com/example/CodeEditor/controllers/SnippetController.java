@@ -27,20 +27,20 @@ public class SnippetController {
     private ClientRepository clientRepository;
 
     @PostMapping("/create/{ownerId}/{projectId}")
-    public Snippet addSnippet(@RequestBody Snippet snippet, @PathVariable Long projectId, @PathVariable Long ownerId) throws IOException {
+    public Snippet addSnippet(@RequestBody Snippet snippet, @PathVariable Long projectId, @PathVariable Long ownerId) throws Exception {
         Client editor = clientRepository.findById(ownerId).orElseThrow();
         snippet.setId(snippetService.createSnippet(editor, snippet, projectId));
         return snippet;
     }
 
     @DeleteMapping("/delete/{ownerId}/{projectId}")
-    public void deleteSnippet(@RequestBody Snippet snippet, @PathVariable Long projectId, @PathVariable Long ownerId) throws IOException {
+    public void deleteSnippet(@RequestBody Snippet snippet, @PathVariable Long projectId, @PathVariable Long ownerId) throws Exception {
         Client editor = clientRepository.findById(ownerId).orElseThrow();
         snippetService.removeSnippet(editor, snippet, projectId);
     }
 
     @GetMapping("/content/{id}/{name}/{ownerId}/{projectId}")
-    public String getSnippetContent(@PathVariable Long id, @PathVariable String name, @PathVariable Long projectId, @PathVariable Long ownerId) throws IOException {
+    public String getSnippetContent(@PathVariable Long id, @PathVariable String name, @PathVariable Long projectId, @PathVariable Long ownerId) throws Exception {
         Client editor = clientRepository.findById(ownerId).orElseThrow();
         return snippetService.loadSnippet(editor, id, name, projectId);
     }

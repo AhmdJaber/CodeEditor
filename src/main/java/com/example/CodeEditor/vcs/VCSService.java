@@ -80,7 +80,7 @@ public class VCSService {
         return log.toString();
     }
 
-    public List<String> commit(Long projectId, Client client, String message) throws IOException {
+    public List<String> commit(Long projectId, Client client, String message) throws Exception {
         Project project = projectRepository.findById(projectId).orElseThrow();
         String branchName = storageService.getCurrentBranch(project);
         String currentCommit = storageService.getCurrentCommit(project, branchName);
@@ -88,7 +88,7 @@ public class VCSService {
         return new ArrayList<>(); //TODO: make it return a list of String with all the tracked changes that have been commited
     }
 
-    public void revert(Long projectId, String commitId) throws IOException {
+    public void revert(Long projectId, String commitId) throws Exception {
         Project project = projectRepository.findById(projectId).orElseThrow();
         String branchName = storageService.getCurrentBranch(project);
         storageService.revert(project, branchName, commitId);

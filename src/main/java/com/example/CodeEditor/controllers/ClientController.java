@@ -27,7 +27,7 @@ public class ClientController {
     private JwtService jwtService;
 
     @GetMapping("/directory/{ownerId}/{projectId}")
-    public ProjectDirectory getEditorDirectory(@PathVariable Long ownerId, @PathVariable Long projectId) throws IOException { // TODO: clean "security"?
+    public ProjectDirectory getEditorDirectory(@PathVariable Long ownerId, @PathVariable Long projectId) { // TODO: clean "security"?
         Client editor = clientRepository.findById(ownerId).orElseThrow();
         return storageService.loadEditorDirObj(editor, projectId);
     }

@@ -1,5 +1,6 @@
 package com.example.CodeEditor.utils;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -9,6 +10,9 @@ import java.nio.file.Paths;
 
 @Service
 public class FileUtil {
+    @Autowired
+    private EncryptionUtil encryptionUtil;
+
     public void createFolder(String folderPath){
         System.out.println(folderPath);
         File folder = new File(folderPath);
@@ -42,30 +46,27 @@ public class FileUtil {
 
 
     public void createLinkFile(String originalPath, String linkPath){
-        Path original = Paths.get(originalPath);
         Path link = Paths.get(linkPath);
-
+        String ecryptedOriginalPath;
         try{
-            Files.createSymbolicLink(link, original);
+            ecryptedOriginalPath = encryptionUtil.encrypt(originalPath);
+            Files.write(link, ecryptedOriginalPath.getBytes());
         } catch (Exception e){
-            throw new IllegalArgumentException("Could not create the link " + linkPath);
+            throw new IllegalArgumentException("Could not encrypt the file " + linkPath);
         }
+
     }
 
-    public String readFromLink(String linkPath){
+    public String readFileFromLink(String linkPath) throws Exception {
         Path link = Paths.get(linkPath);
-
-        try{
-            return Files.readString(link);
-        } catch (Exception e){
-            throw new IllegalArgumentException("Could not read the link " + linkPath);
-        }
+        String originalPath = encryptionUtil.decrypt(Files.readString(link));
+        return Files.readString(Paths.get(originalPath));
     }
 
-    public Object readObjectFromLink(String linkPath) throws IOException {
+    public Object readObjectFromLink(String linkPath) throws Exception {
         Path link = Paths.get(linkPath);
-        Path targetPath = Files.readSymbolicLink(link);
-        return readObjectFromFile(targetPath.toString());
+        String originalPath = encryptionUtil.decrypt(Files.readString(link));
+        return readObjectFromFile(originalPath);
     }
 
     public File[] getSubFiles(String folderPath){
@@ -116,9 +117,6 @@ public class FileUtil {
     }
 
     public void writeObjectOnFile(Object object, String filePath) {
-        if (!Files.exists(Paths.get(filePath))){
-            System.out.println("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATTTTTTTTTTTTTT????????????");
-        }
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
             oos.writeObject(object);
         } catch (IOException e) {
@@ -130,7 +128,11 @@ public class FileUtil {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             return ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            throw new IllegalArgumentException("Error deserializing the Object");
+            throw new IllegalArgumentException("Error deserializing the Object from path " + filePath);
         }
+    }
+
+    public boolean fileExists(String filePath) {
+        return Files.exists(Paths.get(filePath));
     }
 }

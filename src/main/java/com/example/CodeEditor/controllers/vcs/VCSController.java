@@ -26,7 +26,7 @@ public class VCSController {
     private ClientRepository clientRepository;
 
     @GetMapping("/init/{projectId}")
-    public ResponseEntity<String> init(@PathVariable Long projectId) throws IOException {
+    public ResponseEntity<String> init(@PathVariable Long projectId) throws Exception {
         vcsService.initVCS(projectId); //TODO:(exception handling) if the .vcs folder already exists
         return ResponseEntity.ok(".vcs directory initialized");
     }
@@ -44,14 +44,14 @@ public class VCSController {
     }
 
     @PostMapping("/add/{projectId}")
-    public ResponseEntity<?> add(@PathVariable Long projectId, @RequestBody Map<String, Object> body) throws IOException {
+    public ResponseEntity<?> add(@PathVariable Long projectId, @RequestBody Map<String, Object> body) throws Exception {
         List<String> filePaths = (List<String>) body.get("files");
         List<String> addResult = vcsService.add(projectId, filePaths); //TODO: Provide the branch name
         return ResponseEntity.ok().body(addResult);
     }
 
     @PostMapping("/commit/{projectId}")
-    public ResponseEntity<?> commit(@PathVariable Long projectId, @RequestBody String message, @RequestHeader("Authorization") String reqToken) throws IOException {
+    public ResponseEntity<?> commit(@PathVariable Long projectId, @RequestBody String message, @RequestHeader("Authorization") String reqToken) throws Exception {
         String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
         Client client = clientRepository.findByEmail(senderEmail).orElseThrow();
         vcsService.commit(projectId, client, message);
@@ -65,7 +65,7 @@ public class VCSController {
     }
 
     @PostMapping("/revert/{projectId}")
-    public ResponseEntity<?> revert(@PathVariable Long projectId, @RequestBody String commitId) throws IOException {
+    public ResponseEntity<?> revert(@PathVariable Long projectId, @RequestBody String commitId) throws Exception {
         vcsService.revert(projectId, commitId.replace("\"", ""));
         return ResponseEntity.ok("Reverted to commit with id: " + commitId);
     }

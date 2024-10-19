@@ -64,7 +64,7 @@ public class SnippetService {
         storageService.vcsMakeChange(project, branchName, '-', Change.UPDATE, snippet);
     }
 
-    public String loadSnippet(Client editor, Long id, String name, Long projectId) throws IOException {
+    public String loadSnippet(Client editor, Long id, String name, Long projectId) throws Exception {
         return storageService.loadSnippet(editor, id, name, projectId);
     }
 }
