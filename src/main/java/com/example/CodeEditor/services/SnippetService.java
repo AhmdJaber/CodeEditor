@@ -53,7 +53,7 @@ public class SnippetService {
         storageService.vcsMakeChange(project, branchName, '-', Change.DELETE, snippet);
     }
 
-    public void updateSnippet(Client editor, Long id, String name, Map<String, Object> updatedContent, Long projectId) throws IOException {
+    public void updateSnippet(Client editor, Long id, String name, String updatedContent, Long projectId) throws IOException {
         String branchName = "main"; //TODO: get the branch name!!
         storageService.updateSnippet(editor, id, name, updatedContent, projectId);
         System.out.println("Snippet " + id + "_" + name + " has been updated");

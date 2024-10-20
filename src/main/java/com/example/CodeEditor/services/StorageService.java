@@ -184,58 +184,17 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         }
     }
 
-    public synchronized void updateSnippet(Client client, Long id, String name, Map<String, Object> updatedContent, Long projectId) throws IOException {
+    public synchronized void updateSnippet(Client client, Long id, String name, String updatedContent, Long projectId) throws IOException {
         String snippetsPath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\snippets";
         createFolderIfNotExists(snippetsPath);
 
         String fileName = id + "_" + name;
         Path path = Paths.get(snippetsPath + "\\" + fileName);
-        List<Map<String, Object>> changeQueue = (List<Map<String, Object>>) updatedContent.get("changeQueue");
         try {
-            for(Map<String, Object> change : changeQueue){
-                String content = Files.readString(path);
-                String updated = updateContent(content, change);
-                Files.write(path, updated.getBytes());
-            }
+            Files.write(path, updatedContent.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private synchronized String updateContent(String content, Object changeData) {
-        if (!(changeData instanceof Map)) {
-            throw new RuntimeException("Not a Json data");
-        }
-
-        int index = Integer.parseInt(((Map<?, ?>) changeData).get("index").toString());
-        String type = ((Map<?, ?>) changeData).get("type").toString();
-        String chr = ((Map<?, ?>) changeData).get("detail").toString();
-        StringBuilder updatedContent = new StringBuilder(content);
-
-
-        if (type.equals("insert")){
-            synchronized (this) {
-                updatedContent.insert(index, chr);
-            }
-        } else if (type.equals("delete")){
-            int len = Integer.parseInt(chr);
-            synchronized (this) {
-                if (index == updatedContent.length() - 2 && updatedContent.charAt(updatedContent.length() - 1) == '\n'){
-                    updatedContent.deleteCharAt(updatedContent.length() - 1);
-                    updatedContent.deleteCharAt(updatedContent.length() - 1);
-                } else {
-                    updatedContent.delete(index, index + len);
-                }
-            }
-        } else if (type.equals("update")){
-            //TODO: implement
-            synchronized (this) {
-//                updatedContent.setCharAt(column - 1, chr.charAt(0));
-//                lines.set(line - 1, updatedContent.toString());
-            }
-        }
-
-        return updatedContent.toString();
     }
 
     public void saveProjectDirectory(Client client, ProjectDirectory projectDirectory, Long projectId) throws IOException {

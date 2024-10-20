@@ -46,7 +46,7 @@ public class SnippetController {
     }
 
     @PutMapping("/update/{id}/{name}/{ownerId}/{projectId}")
-    public void updateSnippet(@PathVariable Long id, @PathVariable String name, @RequestBody Map<String, Object> content, @PathVariable Long projectId, @PathVariable Long ownerId) throws IOException {
+    public void updateSnippet(@PathVariable Long id, @PathVariable String name, @RequestBody String content, @PathVariable Long projectId, @PathVariable Long ownerId) throws IOException {
         Client editor = clientRepository.findById(ownerId).orElseThrow();
         snippetService.updateSnippet(editor, id, name, content, projectId);
     }
