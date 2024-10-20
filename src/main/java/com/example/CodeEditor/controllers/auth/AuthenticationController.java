@@ -20,9 +20,9 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.register(request, role));
     }
 
-    @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request){
-        return ResponseEntity.ok(authenticationService.authenticate(request));
+    @PostMapping("/authenticate/{role}")
+    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request, @PathVariable String role) throws IOException {
+        return ResponseEntity.ok(authenticationService.authenticate(request, role));
     }
 
     @GetMapping("/refresh-token")

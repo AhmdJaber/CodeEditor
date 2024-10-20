@@ -1,10 +1,14 @@
 package com.example.CodeEditor.services;
 
+import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.users.client.Client;
+import com.example.CodeEditor.model.users.client.Token;
 import com.example.CodeEditor.model.users.editor.Editor;
 import com.example.CodeEditor.model.users.editor.ProjectDirectory;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.EditorRepository;
+import com.example.CodeEditor.repository.ProjectRepository;
+import com.example.CodeEditor.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,8 +29,13 @@ public class EditorService {
 
     @Autowired
     private StorageService storageService;
+
     @Autowired
     private ClientRepository clientRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
+    @Autowired
+    private TokenRepository tokenRepository;
 
     public List<Editor> getAllEditors() {
         return editorRepository.findAll();
@@ -52,16 +61,26 @@ public class EditorService {
 
     }
 
-    public boolean deleteEditor(Long id) {
-        if (editorRepository.existsById(id)) {
-            editorRepository.deleteById(id);
-            return true;
+    public void deleteEditor(Long id) {
+        if (clientRepository.existsById(id)) {
+            Client client = clientRepository.findById(id).orElseThrow();
+            List< Project> projects = projectRepository.findByClient(client);
+            for (Project project : projects) {
+                List<Client> allSharedWith = storageService.getAllSharedWith(project.getClient().getId(), project.getId());
+                for (Client sharedWith : allSharedWith) {
+                    storageService.removesharedProject(sharedWith, project.getId());
+                }
+                projectRepository.delete(project);
+            }
+            List<Token> tokens = tokenRepository.findAllValidTokenClient(id);
+            tokenRepository.deleteAll(tokens);
+            storageService.deleteUser(id);
+            clientRepository.deleteById(id);
         }
-        return false;
     }
 
     public Editor getEditorByEmail(String email){
-        return editorRepository.findByEmail(email); // TODO: return optional not Editor!
+        return editorRepository.findByEmail(email); // TODO: return optional
     }
 
     public boolean authenticate(Editor editor){

@@ -72,7 +72,7 @@ public class AuthenticationService {
         tokenRepository.save(token);
     }
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public AuthenticationResponse authenticate(AuthenticationRequest request, String role) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -81,6 +81,9 @@ public class AuthenticationService {
         );
 
         Client client = clientRepository.findByEmail(request.getEmail()).orElseThrow();
+        if (Role.valueOf(role) != client.getRole()){
+            return null;
+        }
         String accessToken = jwtService.generateAccessToken(client);
         String refreshToken = jwtService.generateRefreshToken(client);
         deleteAllClientExpiredTokens(client);
@@ -93,13 +96,6 @@ public class AuthenticationService {
         if (tokens.isEmpty()){
             return;
         }
-
-//        for (Token token : tokens){
-//            token.setExpired(true);
-//            token.setRevoked(true);
-//            // TODO: delete the expired tokens?
-//        }
-//        tokenRepository.saveAll(tokens);
         tokenRepository.deleteAll(tokens);
     }
 

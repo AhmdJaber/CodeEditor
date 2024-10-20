@@ -6,7 +6,9 @@ import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.component.files.Snippet;
 import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.model.users.editor.ProjectDirectory;
+import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.FileItemRepository;
+import com.example.CodeEditor.repository.ProjectRepository;
 import com.example.CodeEditor.utils.EncryptionUtil;
 import com.example.CodeEditor.utils.FileUtil;
 import com.example.CodeEditor.vcs.Change;
@@ -32,6 +34,10 @@ public class StorageService { // TODO: split the storage service && Exception Ha
 
     @Autowired
     private EncryptionUtil encryptionUtil;
+    @Autowired
+    private ClientRepository clientRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     public Long getFileIdByPath(Project project, String path) throws IOException {
         Map<Long, FileNode> editorDir = loadEditorDirObj(project.getClient(), project.getId()).getTree();
@@ -66,6 +72,11 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         } catch (Exception e){
             throw new IllegalStateException("Failed to create folder " + userPath, e);
         }
+    }
+
+    public void deleteUser(Long clientId){
+        String userPath = path + "\\" + clientId;
+        fileUtil.deleteFolder(userPath);
     }
 
     public void createProject(Client client, Project project){
@@ -107,6 +118,33 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         } catch (Exception e){
             throw new IllegalStateException("Failed to create folder " + sharedPath, e);
         }
+    }
+
+    public void removesharedProject(Client clientToShareWith, Long projectId){
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        Long ownerId = project.getClient().getId();
+        String listOfSharedPath = path + "\\" + ownerId + "\\projects\\" + projectId + "\\shared";
+        String sharedPath = path + "\\" + clientToShareWith.getId() + "\\shared\\";
+        createFolderIfNotExists(sharedPath);
+        try {
+            fileUtil.deleteFile(sharedPath + "\\" + ownerId + "_" + projectId);
+            List<Long> sharedWith = (List<Long>) fileUtil.readObjectFromFile(listOfSharedPath);
+            sharedWith.remove(clientToShareWith.getId());
+            fileUtil.writeObjectOnFile(sharedWith, listOfSharedPath);
+        } catch (Exception e){
+            throw new IllegalStateException("Failed to delete shared project " + sharedPath, e);
+        }
+    }
+
+    public List<Client> getAllSharedWith(Long ownerId, Long projectId){
+        String listOfSharedPath = path + "\\" + ownerId + "\\projects\\" + projectId + "\\shared";
+        List<Client> clients = new ArrayList<>();
+        List<Long> sharedWith = (List<Long>) fileUtil.readObjectFromFile(listOfSharedPath);
+        for (Long sharedWithId : sharedWith){
+            Client client = clientRepository.findById(sharedWithId).orElse(null);
+            clients.add(client);
+        }
+        return clients;
     }
 
     public List<String> getSharedProjects(Client client){
