@@ -1,5 +1,6 @@
 package com.example.CodeEditor.services;
 
+import com.example.CodeEditor.model.component.Comment;
 import com.example.CodeEditor.model.component.files.FileItem;
 import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.component.files.Snippet;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -66,5 +68,13 @@ public class SnippetService {
 
     public String loadSnippet(Client editor, Long id, String name, Long projectId) throws Exception {
         return storageService.loadSnippet(editor, id, name, projectId);
+    }
+
+    public void comment(Client editor, Project project, Long snippetId, String comment, Integer start, Integer end) {
+        storageService.comment(editor, project, snippetId, comment, start, end);
+    }
+
+    public List<Comment> getSnippetComments(Project project, Long snippetId) {
+        return storageService.getSnippetComments(project, snippetId);
     }
 }

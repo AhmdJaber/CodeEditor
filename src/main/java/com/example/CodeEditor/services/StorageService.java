@@ -1,5 +1,6 @@
 package com.example.CodeEditor.services;
 
+import com.example.CodeEditor.model.component.Comment;
 import com.example.CodeEditor.model.component.files.FileItem;
 import com.example.CodeEditor.model.component.files.FileNode;
 import com.example.CodeEditor.model.component.files.Project;
@@ -21,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -86,7 +88,8 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             fileUtil.createFolder(projectPath);
             fileUtil.createFolder(projectPath + "\\tree");
             fileUtil.createFolder(projectPath + "\\snippets");
-            fileUtil.createFile(projectPath + "\\shared", "");
+            fileUtil.createFolder(projectPath + "\\comments");
+            fileUtil.createFile(projectPath + "\\shared", ""); //TODO: remove?
             fileUtil.writeObjectOnFile(new ArrayList<>(), projectPath + "\\shared");
             fileUtil.writeObjectOnFile(new ArrayList<>(), projectPath + "\\shared_view");
             saveProjectDirectory(client, new ProjectDirectory(), project.getId());
@@ -191,16 +194,19 @@ public class StorageService { // TODO: split the storage service && Exception Ha
     }
 
     public void createSnippet(Client client, Snippet snippet, Long projectId) throws IOException {
-        String snippetsPath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\snippets";
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        String snippetsPath = path + "\\" + client.getId() + "\\projects\\" + project.getId() + "\\snippets";
         createFolderIfNotExists(snippetsPath);
 
         String fileName = snippet.getId() + "_" + snippet.getName();
-        Path path = Paths.get(snippetsPath + "\\" + fileName);
-        Files.createFile(path);
+        Path snippetPath = Paths.get(snippetsPath + "\\" + fileName);
+        Files.createFile(snippetPath);
         String extension = snippet.getName().substring(snippet.getName().lastIndexOf(".") + 1);
         String content = getCodeContent(extension);
 
-        Files.write(path, content.getBytes());
+        Files.write(snippetPath, content.getBytes());
+        String commentPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\comments\\" + snippet.getId();
+        fileUtil.writeObjectOnFile(new ArrayList<>(), commentPath);
     }
 
     private static String getCodeContent(String extension) { // TODO: move it to utils?
@@ -254,6 +260,27 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void comment(Client editor, Project project, Long snippetId, String comment, Integer start, Integer end) {
+        String commentPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\comments\\" + snippetId;
+        List<Comment> comments = (List<Comment>) fileUtil.readObjectFromFile(commentPath);
+        Comment currentComment = Comment.builder()
+                .editorName(editor.getName())
+                .editorEmail(editor.getEmail())
+                .content(comment)
+                .date(LocalDate.now())
+                .start(start)
+                .end(end)
+                .build();
+        comments.add(currentComment);
+        System.out.println(comments);
+        fileUtil.writeObjectOnFile(comments, commentPath);
+    }
+
+    public List<Comment> getSnippetComments(Project project, Long snippetId) {
+        String commentPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\comments\\" + snippetId;
+        return (List<Comment>) fileUtil.readObjectFromFile(commentPath);
     }
 
     public void saveProjectDirectory(Client client, ProjectDirectory projectDirectory, Long projectId) throws IOException {

@@ -1,7 +1,10 @@
 package com.example.CodeEditor.controllers;
 
+import com.example.CodeEditor.model.component.Comment;
+import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.component.files.Snippet;
 import com.example.CodeEditor.model.users.client.Client;
+import com.example.CodeEditor.repository.ProjectRepository;
 import com.example.CodeEditor.security.jwt.JwtService;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.services.EditorService;
@@ -27,6 +30,10 @@ public class SnippetController {
 
     @Autowired
     private ClientRepository clientRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
+    @Autowired
+    private JwtService jwtService;
 
     @PostMapping("/create/{ownerId}/{projectId}")
     public Snippet addSnippet(@RequestBody Snippet snippet, @PathVariable Long projectId, @PathVariable Long ownerId) throws Exception {
@@ -51,6 +58,23 @@ public class SnippetController {
     public void updateSnippet(@PathVariable Long id, @PathVariable String name, @RequestBody String content, @PathVariable Long projectId, @PathVariable Long ownerId) throws IOException {
         Client editor = clientRepository.findById(ownerId).orElseThrow();
         snippetService.updateSnippet(editor, id, name, content, projectId);
+    }
+
+    @PostMapping("/comment/{projectId}/{snippetId}")
+    public void comment(@PathVariable Long projectId, @PathVariable Long snippetId, @RequestBody Map<String, String> body,  @RequestHeader("Authorization") String reqToken) throws Exception {
+        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
+        Client editor = clientRepository.findByEmail(senderEmail).orElseThrow();
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        String comment = body.get("comment");
+        Integer startLine = Integer.parseInt(body.get("start"));
+        Integer endLine = Integer.parseInt(body.get("end"));
+        snippetService.comment(editor, project, snippetId, comment, startLine, endLine);
+    }
+
+    @GetMapping("/get-comments/{projectId}/{snippetId}")
+    public List<Comment> getSnippetComments(@PathVariable Long projectId, @PathVariable Long snippetId) throws Exception {
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        return snippetService.getSnippetComments(project, snippetId);
     }
 
     @PostMapping("/execute")
