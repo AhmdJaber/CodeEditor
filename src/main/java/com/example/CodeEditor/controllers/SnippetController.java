@@ -7,6 +7,7 @@ import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.services.EditorService;
 import com.example.CodeEditor.services.SnippetService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/snippet")
+@PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
 public class SnippetController {
     @Autowired
     private SnippetService snippetService;

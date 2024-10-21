@@ -7,6 +7,7 @@ import com.example.CodeEditor.services.StorageService;
 import com.example.CodeEditor.vcs.VCSService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/vcs")
+@PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
 public class VCSController {
     @Autowired
     private VCSService vcsService;

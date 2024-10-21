@@ -5,13 +5,14 @@ import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.services.FolderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
 @RestController
 @RequestMapping("/folder")
-@CrossOrigin("http://localhost:5000")
+@PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
 public class FolderController {
     @Autowired
     private FolderService folderService;

@@ -8,6 +8,7 @@ import com.example.CodeEditor.services.EditorService;
 import com.example.CodeEditor.services.ProjectService;
 import com.example.CodeEditor.services.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin("http://localhost:5000")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
     @Autowired
     private ClientRepository clientRepository;
