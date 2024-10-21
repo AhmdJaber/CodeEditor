@@ -29,8 +29,17 @@ public class ProjectService {
         return projectRepository.findById(id).orElse(null);
     }
 
-    public List<Project> getSharedProjects(Client client) {
-        List<String> projects = storageService.getSharedProjects(client);
+    public List<Project> getSharedEditProjects(Client client) {
+        List<String> projects = storageService.getSharedEditProjects(client);
+        return getSharedProjects(projects);
+    }
+
+    public List<Project> getShareViewProjects(Client client) {
+        List<String> projects = storageService.getSharedViewProjects(client);
+        return getSharedProjects(projects);
+    }
+
+    private List<Project> getSharedProjects(List<String> projects) {
         List<Project> sharedProjects = new ArrayList<>();
         for (String shared : projects) {
             Long projectId = Long.parseLong(shared.split("_")[1]);

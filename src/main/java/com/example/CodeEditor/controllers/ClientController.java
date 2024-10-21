@@ -32,8 +32,8 @@ public class ClientController {
         return storageService.loadEditorDirObj(editor, projectId);
     }
 
-    @PostMapping("/share_project/{email}/{ownerId}/{projectId}")
-    public ResponseEntity<?> shareEditorProject(@PathVariable String email, @PathVariable Long ownerId, @PathVariable Long projectId, @RequestHeader("Authorization") String reqToken) throws IOException {
+    @PostMapping("/share_project_edit/{email}/{ownerId}/{projectId}")
+    public ResponseEntity<?> shareProjectWithEdit(@PathVariable String email, @PathVariable Long ownerId, @PathVariable Long projectId, @RequestHeader("Authorization") String reqToken) throws IOException {
         String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
         Client client = clientRepository.findByEmail(senderEmail).orElseThrow();
         if (!Objects.equals(client.getId(), ownerId)){
@@ -41,9 +41,25 @@ public class ClientController {
         }
         Client clientToShareWith = clientRepository.findByEmail(email).orElse(null);
         if (clientToShareWith != null) {
-            storageService.shareProject(clientToShareWith, projectId, ownerId);
+            storageService.shareProjectWithEdit(clientToShareWith, projectId, ownerId);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
+
+    @PostMapping("/share_project_view/{email}/{ownerId}/{projectId}")
+    public ResponseEntity<?> shareProjectWithView(@PathVariable String email, @PathVariable Long ownerId, @PathVariable Long projectId, @RequestHeader("Authorization") String reqToken) throws IOException {
+        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
+        Client client = clientRepository.findByEmail(senderEmail).orElseThrow();
+        if (!Objects.equals(client.getId(), ownerId)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You aren't allowed to share this project");
+        }
+        Client clientToShareWith = clientRepository.findByEmail(email).orElse(null);
+        if (clientToShareWith != null) {
+            storageService.shareProjectWithView(clientToShareWith, projectId, ownerId);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
 }

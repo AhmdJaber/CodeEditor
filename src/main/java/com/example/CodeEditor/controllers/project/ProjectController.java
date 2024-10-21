@@ -34,12 +34,20 @@ public class ProjectController {
         return projectService.getClientProjects(client);
     }
 
-    @GetMapping("/shared_projects")
-    public List<Project> getSharedProjects(@RequestHeader("Authorization") String reqToken) {
+    @GetMapping("/shared_projects_edit")
+    public List<Project> getSharedEditProjects(@RequestHeader("Authorization") String reqToken) {
         String token = reqToken.replace("Bearer ", "");
         String email = jwtService.extractUsername(token);
         Client client = clientRepository.findByEmail(email).orElseThrow();
-        return projectService.getSharedProjects(client);
+        return projectService.getSharedEditProjects(client);
+    }
+
+    @GetMapping("/shared_projects_view")
+    public List<Project> getSharedViewProjects(@RequestHeader("Authorization") String reqToken) {
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.extractUsername(token);
+        Client client = clientRepository.findByEmail(email).orElseThrow();
+        return projectService.getShareViewProjects(client);
     }
 
     @PostMapping("/create")

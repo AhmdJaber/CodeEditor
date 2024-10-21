@@ -62,7 +62,7 @@ public class AdminController {
     @GetMapping("/get-shared/{editorId}")
     public List<Project> getSharedProjects(@PathVariable Long editorId){
         Client client = clientRepository.findById(editorId).orElseThrow();
-        return projectService.getSharedProjects(client);
+        return projectService.getSharedEditProjects(client);
     }
 
     @DeleteMapping("/remove-shared-project/{editorId}/{projectId}")

@@ -69,6 +69,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             fileUtil.createFolder(userPath);
             fileUtil.createFolder(userPath + "\\projects");
             fileUtil.createFolder(userPath + "\\shared");
+            fileUtil.createFolder(userPath + "\\shared_view");
         } catch (Exception e){
             throw new IllegalStateException("Failed to create folder " + userPath, e);
         }
@@ -87,6 +88,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             fileUtil.createFolder(projectPath + "\\snippets");
             fileUtil.createFile(projectPath + "\\shared", "");
             fileUtil.writeObjectOnFile(new ArrayList<>(), projectPath + "\\shared");
+            fileUtil.writeObjectOnFile(new ArrayList<>(), projectPath + "\\shared_view");
             saveProjectDirectory(client, new ProjectDirectory(), project.getId());
         } catch (Exception e){
             throw new IllegalStateException("Failed to create folders on " + projectPath, e);
@@ -106,9 +108,19 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         }
     }
 
-    public void shareProject(Client clientToShareWith, Long projectId, Long ownerId){
+    public void shareProjectWithEdit(Client clientToShareWith, Long projectId, Long ownerId){
         String listOfSharedPath = path + "\\" + ownerId + "\\projects\\" + projectId + "\\shared";
         String sharedPath = path + "\\" + clientToShareWith.getId() + "\\shared\\";
+        shareProject(clientToShareWith, projectId, ownerId, listOfSharedPath, sharedPath);
+    }
+
+    public void shareProjectWithView(Client clientToShareWith, Long projectId, Long ownerId) {
+        String listOfSharedPath = path + "\\" + ownerId + "\\projects\\" + projectId + "\\shared_view";
+        String sharedPath = path + "\\" + clientToShareWith.getId() + "\\shared_view\\";
+        shareProject(clientToShareWith, projectId, ownerId, listOfSharedPath, sharedPath);
+    }
+
+    private void shareProject(Client clientToShareWith, Long projectId, Long ownerId, String listOfSharedPath, String sharedPath) {
         createFolderIfNotExists(sharedPath);
         try {
             fileUtil.createFile(sharedPath + "\\" + ownerId + "_" + projectId, "");
@@ -147,8 +159,17 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         return clients;
     }
 
-    public List<String> getSharedProjects(Client client){
+    public List<String> getSharedEditProjects(Client client){
         String sharedPath = path + "\\" + client.getId() + "\\shared\\";
+        return getSharedProjects(sharedPath);
+    }
+
+    public List<String> getSharedViewProjects(Client client) {
+        String sharedPath = path + "\\" + client.getId() + "\\shared_view\\";
+        return getSharedProjects(sharedPath);
+    }
+
+    private List<String> getSharedProjects(String sharedPath) {
         createFolderIfNotExists(sharedPath);
         File[] files = fileUtil.getSubFiles(sharedPath);
         List<String> projects = new ArrayList<>();
@@ -342,6 +363,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         String changesPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\changes";
         return (Map<Long, ChangeHolder>) fileUtil.readObjectFromFile(changesPath);
     }
+
 
     private void vcsWriteChanges(Project project, String branchName, Map<Long, ChangeHolder> changes){
         String changesPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\changes";
