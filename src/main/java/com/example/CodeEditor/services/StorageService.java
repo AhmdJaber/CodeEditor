@@ -328,6 +328,11 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         //TODO: create the rest of the files and directories
     }
 
+    public boolean checkVCSProject(Project project) {
+        String vcsPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs";
+        return fileUtil.fileExists(vcsPath);
+    }
+
     private void createInitialCommit(Project project) throws IOException {
         String commitsPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\main\\commits";
         String commitId = project.getClient().getId().toString() + "%" + Instant.now().getEpochSecond() + "%" + "initial commit".hashCode();

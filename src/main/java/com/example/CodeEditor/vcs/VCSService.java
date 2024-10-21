@@ -2,7 +2,6 @@ package com.example.CodeEditor.vcs;
 
 import com.example.CodeEditor.model.component.files.FileItem;
 import com.example.CodeEditor.model.component.files.Project;
-import com.example.CodeEditor.model.component.files.Snippet;
 import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.repository.ProjectRepository;
 import com.example.CodeEditor.services.FileItemService;
@@ -94,14 +93,15 @@ public class VCSService {
         storageService.revert(project, branchName, commitId);
     }
 
+    public boolean checkVCSProject(Long projectId){
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        return storageService.checkVCSProject(project);
+    }
+
     // TODO: -------------------------------- :TODO
     // TODO:      T      O      D      O      :TODO
     // TODO: -------------------------------- :TODO
     public List<String> push(Project project){
         return null; //TODO: create the commit inside the branch (the snapshot that we created)
-    }
-
-    public boolean checkVCSDirectory(Project project){
-        return true; //TODO: from the filesystem, check if there is a .vcs directory
     }
 }

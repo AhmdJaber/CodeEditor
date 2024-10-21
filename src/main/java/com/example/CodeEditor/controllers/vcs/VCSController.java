@@ -3,7 +3,6 @@ package com.example.CodeEditor.controllers.vcs;
 import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.security.jwt.JwtService;
-import com.example.CodeEditor.services.StorageService;
 import com.example.CodeEditor.vcs.VCSService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -72,5 +71,8 @@ public class VCSController {
         return ResponseEntity.ok("Reverted to commit with id: " + commitId);
     }
 
-
+    @GetMapping("/check-vcs/{projectId}")
+    public ResponseEntity<?> checkVCS(@PathVariable Long projectId){
+        return ResponseEntity.ok().body(vcsService.checkVCSProject(projectId));
+    }
 }
