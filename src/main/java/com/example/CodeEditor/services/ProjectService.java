@@ -69,7 +69,6 @@ public class ProjectService {
         }
         projectRepository.deleteById(id);
     }
-
 //    public List<Long> getSharedWith(Long id){
 //        Project project = getProjectById(id);
 //        Client client = clientRepository.findById(project.getClient().getId()).orElseThrow();

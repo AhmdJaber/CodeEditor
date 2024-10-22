@@ -72,6 +72,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             fileUtil.createFolder(userPath + "\\projects");
             fileUtil.createFolder(userPath + "\\shared");
             fileUtil.createFolder(userPath + "\\shared_view");
+            fileUtil.writeObjectOnFile(new ArrayList<>(), userPath + "\\public");
         } catch (Exception e){
             throw new IllegalStateException("Failed to create folder " + userPath, e);
         }
@@ -105,10 +106,48 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             for(Long sharedWithId : sharedWith){
                 fileUtil.deleteFile(path + "\\" + sharedWithId + "\\shared\\" + "\\" + client.getId() + "_" + projectId);
             }
+            removeProjectFromPublic(projectId);
             fileUtil.deleteFolder(projectPath);
         } catch (Exception e){
             throw new IllegalStateException("Failed to create folders on " + projectPath, e);
         }
+    }
+
+    public void shareProjectToPublic(Long projectId){
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        String userPublic = path + "\\" + project.getClient().getId() + "\\public";
+        List<Long> publicProjects = (List<Long>) fileUtil.readObjectFromFile(userPublic);
+        publicProjects.add(projectId);
+        fileUtil.writeObjectOnFile(publicProjects, userPublic);
+    }
+
+    public void removeProjectFromPublic(Long projectId){
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        String userPublic = path + "\\" + project.getClient().getId() + "\\public";
+        List<Long> publicProjects = (List<Long>) fileUtil.readObjectFromFile(userPublic);
+        publicProjects.remove(projectId);
+        fileUtil.writeObjectOnFile(publicProjects, userPublic);
+    }
+
+    public List<Project> getPublicProjects(Long clientId){
+        Client client = clientRepository.findById(clientId).orElseThrow();
+        String userPublic = path + "\\" + client.getId() + "\\public";
+        List<Project> publicProjets = new ArrayList<>();
+        List<Long> projectsIds = (List<Long>) fileUtil.readObjectFromFile(userPublic);
+        for (Long projectId : projectsIds){
+            Project project = projectRepository.findById(projectId).orElse(null);
+            if (project != null){
+                publicProjets.add(project);
+            }
+        }
+        return publicProjets;
+    }
+
+    public boolean checkProjectPublic(Long projectId){
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        String userPublic = path + "\\" + project.getClient().getId() + "\\public";
+        List<Long> publicProjects = (List<Long>) fileUtil.readObjectFromFile(userPublic);
+        return publicProjects.contains(projectId);
     }
 
     public void shareProjectWithEdit(Client clientToShareWith, Long projectId, Long ownerId){
@@ -287,7 +326,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         String dirPath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\tree\\";
         createFolderIfNotExists(dirPath);
 
-        File file = new File(dirPath + client.getId() + "_treeObject.ser");
+        File file = new File(dirPath + "_treeObject.ser");
         try (FileOutputStream fileOutStream = new FileOutputStream(file);
              ObjectOutputStream objectOutStream = new ObjectOutputStream(fileOutStream)){
             objectOutStream.writeObject(projectDirectory);
@@ -298,7 +337,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
     }
 
     public ProjectDirectory loadEditorDirObj(Client client, Long projectId) {
-        String filePath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\tree\\" + client.getId() + "_treeObject.ser";
+        String filePath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\tree\\" + "_treeObject.ser";
         Path path = Paths.get(filePath);
         if (Files.exists(path)) {
             return (ProjectDirectory) fileUtil.readObjectFromFile(filePath);
@@ -350,7 +389,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         fileUtil.createFolder(commitsPath + "\\" + commitId);
         fileUtil.createFolder(commitsPath + "\\" + commitId + "\\snippets");
         fileUtil.createFolder(commitsPath + "\\" + commitId + "\\tree");
-        fileUtil.writeObjectOnFile(projectDirectory, commitsPath + "\\" + commitId + "\\tree\\" + project.getClient().getId() + "_treeObject.ser");
+        fileUtil.writeObjectOnFile(projectDirectory, commitsPath + "\\" + commitId + "\\tree\\" + "_treeObject.ser");
         for(File snippet: allSnippets){
             Long id = Long.parseLong(snippet.getName().split("_")[0]);
             fileUtil.createFile(commitsPath + "\\" + commitId + "\\snippets\\" + snippet.getName(), filesContent.get(id));
@@ -502,13 +541,13 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         fileUtil.createFolder(commitsPath + "\\" + commitId + "\\snippets");
         fileUtil.createFolder(commitsPath + "\\" + commitId + "\\tree");
         if (structureChanged){
-            fileUtil.writeObjectOnFile(projectStructure, commitsPath + "\\" + commitId + "\\tree\\" + project.getClient().getId() + "_treeObject.ser");
+            fileUtil.writeObjectOnFile(projectStructure, commitsPath + "\\" + commitId + "\\tree\\" + "_treeObject.ser");
         } else {
             File prevProj = fileUtil.getSubFiles(prevCommitPath + "\\tree")[0];
             if (!prevProj.getName().endsWith(".ser")){
-                fileUtil.createFile(commitsPath + "\\" + commitId + "\\tree\\" + project.getClient().getId() + "_treeObject", fileUtil.readFileContents(prevProj.getAbsolutePath()));
+                fileUtil.createFile(commitsPath + "\\" + commitId + "\\tree\\" + "_treeObject", fileUtil.readFileContents(prevProj.getAbsolutePath()));
             } else {
-                fileUtil.createLinkFile(prevProj.getAbsolutePath(), commitsPath + "\\" + commitId + "\\tree\\" + project.getClient().getId() + "_treeObject");
+                fileUtil.createLinkFile(prevProj.getAbsolutePath(), commitsPath + "\\" + commitId + "\\tree\\" + "_treeObject");
             }
         }
         for(File snippet: allSnippets){
@@ -555,16 +594,16 @@ public class StorageService { // TODO: split the storage service && Exception Ha
     public void revert(Project project, String branchName, String commitId) throws Exception {
         String projectPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId();
         fileUtil.deleteFolder(projectPath + "\\snippets");
-        fileUtil.deleteFile(projectPath + "\\tree\\" + project.getClient().getId() + "_treeObject.ser");
+        fileUtil.deleteFile(projectPath + "\\tree\\" + "_treeObject.ser");
         fileUtil.createFolder(projectPath + "\\snippets");
 
         String commitPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\commits\\" + commitId;
         String projectDirPath = commitPath + "\\tree";
         File projectDir = fileUtil.getSubFiles(projectDirPath)[0];
         if (!projectDir.getName().endsWith(".ser")){
-            fileUtil.createFile(projectPath + "\\tree\\" + project.getClient().getId() + "_treeObject", fileUtil.readFileContents(projectDir.getAbsolutePath()));
+            fileUtil.createFile(projectPath + "\\tree\\" + "_treeObject", fileUtil.readFileContents(projectDir.getAbsolutePath()));
         } else {
-            fileUtil.writeObjectOnFile(fileUtil.readObjectFromFile(projectDir.getAbsolutePath()), projectPath + "\\tree\\" + project.getClient().getId() + "_treeObject.ser");
+            fileUtil.writeObjectOnFile(fileUtil.readObjectFromFile(projectDir.getAbsolutePath()), projectPath + "\\tree\\" + "_treeObject.ser");
         }
         File[] snippets = fileUtil.getSubFiles(commitPath + "\\snippets");
         for(File snippet: snippets){
@@ -576,4 +615,16 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         vcsWriteChanges(project, branchName, new HashMap<>());
     }
 
+    public void fork(Project project, Client client) {
+        String projectPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId();
+        Project buildProject = Project.builder()
+                .name(project.getName())
+                .client(client)
+                .build();
+        Project newProject = projectRepository.save(buildProject);
+        String clientProjectsPath = path + "\\" + client.getId() + "\\projects\\" + newProject.getId();
+        createProject(client, newProject);
+        fileUtil.copyDirectory(projectPath + "\\tree", clientProjectsPath + "\\tree");
+        fileUtil.copyDirectory(projectPath + "\\snippets", clientProjectsPath + "\\snippets");
+    }
 }

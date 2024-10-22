@@ -1,7 +1,9 @@
 package com.example.CodeEditor.controllers.vcs;
 
+import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.repository.ClientRepository;
+import com.example.CodeEditor.repository.ProjectRepository;
 import com.example.CodeEditor.security.jwt.JwtService;
 import com.example.CodeEditor.vcs.VCSService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/vcs")
@@ -25,6 +28,8 @@ public class VCSController {
 
     @Autowired
     private ClientRepository clientRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @GetMapping("/init/{projectId}")
     public ResponseEntity<String> init(@PathVariable Long projectId) throws Exception {
@@ -74,5 +79,17 @@ public class VCSController {
     @GetMapping("/check-vcs/{projectId}")
     public ResponseEntity<?> checkVCS(@PathVariable Long projectId){
         return ResponseEntity.ok().body(vcsService.checkVCSProject(projectId));
+    }
+
+    @PostMapping("/fork/{projectId}")
+    public ResponseEntity<?> fork(@PathVariable Long projectId, @RequestHeader("Authorization") String reqToken) throws Exception {
+        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
+        Client client = clientRepository.findByEmail(senderEmail).orElseThrow();
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        if (Objects.equals(project.getClient(), client)){
+            return ResponseEntity.badRequest().body("Cannot fork projects you own");
+        }
+        vcsService.fork(client, projectId);
+        return ResponseEntity.ok("Forked successfully");
     }
 }

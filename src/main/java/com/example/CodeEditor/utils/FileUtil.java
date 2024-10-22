@@ -57,18 +57,6 @@ public class FileUtil {
 
     }
 
-    public String readFileFromLink(String linkPath) throws Exception {
-        Path link = Paths.get(linkPath);
-        String originalPath = encryptionUtil.decrypt(Files.readString(link));
-        return Files.readString(Paths.get(originalPath));
-    }
-
-    public Object readObjectFromLink(String linkPath) throws Exception {
-        Path link = Paths.get(linkPath);
-        String originalPath = encryptionUtil.decrypt(Files.readString(link));
-        return readObjectFromFile(originalPath);
-    }
-
     public File[] getSubFiles(String folderPath){
         File folder = new File(folderPath);
         if (!folder.exists()) {
@@ -134,5 +122,44 @@ public class FileUtil {
 
     public boolean fileExists(String filePath) {
         return Files.exists(Paths.get(filePath));
+    }
+
+    public void copyDirectory(String source, String target) {
+        File sourceFile = new File(source);
+        File targetFile = new File(target);
+        try{
+            copyDirectory(sourceFile, targetFile);
+        } catch (IOException e){
+            System.out.println("Failed to copy directory from " + source + " to " + target);
+        }
+    }
+
+    private void copyDirectory(File sourceDirectory, File destinationDirectory) throws IOException {
+        if (!destinationDirectory.exists()) {
+            destinationDirectory.mkdir();
+        }
+        for (String f : sourceDirectory.list()) {
+            copyDirectoryCompatibityMode(new File(sourceDirectory, f), new File(destinationDirectory, f));
+        }
+    }
+
+    public void copyDirectoryCompatibityMode(File source, File destination) throws IOException {
+        if (source.isDirectory()) {
+            copyDirectory(source, destination);
+        } else {
+            copyFile(source, destination);
+        }
+    }
+
+    private void copyFile(File sourceFile, File destinationFile)
+            throws IOException {
+        try (InputStream in = new FileInputStream(sourceFile);
+             OutputStream out = new FileOutputStream(destinationFile)) {
+            byte[] buf = new byte[1024];
+            int length;
+            while ((length = in.read(buf)) > 0) {
+                out.write(buf, 0, length);
+            }
+        }
     }
 }

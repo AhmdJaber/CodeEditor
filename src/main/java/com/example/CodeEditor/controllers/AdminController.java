@@ -32,14 +32,7 @@ public class AdminController {
 
     @GetMapping("/get-editors")
     public List<Client> getAllEditors(){
-        List<Client> clients = clientRepository.findAll();
-        List<Client> editors = new ArrayList<>();
-        for(Client client : clients){
-            if (client.getRole() == Role.EDITOR){
-                editors.add(client);
-            }
-        }
-        return editors;
+        return editorService.getAllEditors();
     }
 
     @DeleteMapping("/remove-editor/{editorId}")

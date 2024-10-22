@@ -1,5 +1,6 @@
 package com.example.CodeEditor.services;
 
+import com.example.CodeEditor.enums.Role;
 import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.users.client.Client;
 import com.example.CodeEditor.model.users.client.Token;
@@ -16,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -36,10 +38,6 @@ public class EditorService {
     private ProjectRepository projectRepository;
     @Autowired
     private TokenRepository tokenRepository;
-
-    public List<Editor> getAllEditors() {
-        return editorRepository.findAll();
-    }
 
     public Editor getEditorById(Long id) {
         return editorRepository.findById(id).orElseThrow(
@@ -77,6 +75,17 @@ public class EditorService {
             storageService.deleteUser(id);
             clientRepository.deleteById(id);
         }
+    }
+
+    public List<Client> getAllEditors(){
+        List<Client> clients = clientRepository.findAll();
+        List<Client> editors = new ArrayList<>();
+        for (Client client : clients) {
+            if (client.getRole() == Role.EDITOR){
+                editors.add(client);
+            }
+        }
+        return editors;
     }
 
     public Editor getEditorByEmail(String email){

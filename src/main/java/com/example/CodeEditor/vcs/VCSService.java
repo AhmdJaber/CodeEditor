@@ -104,4 +104,9 @@ public class VCSService {
     public List<String> push(Project project){
         return null; //TODO: create the commit inside the branch (the snapshot that we created)
     }
+
+    public void fork(Client client, Long projectId) {
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        storageService.fork(project, client);
+    }
 }

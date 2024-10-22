@@ -76,8 +76,8 @@ public class ProjectController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You aren't allowed to delete this project");
         }
 
-        projectService.deleteProjectById(projectId);
         storageService.deleteProject(client, projectId);
+        projectService.deleteProjectById(projectId);
         return ResponseEntity.ok("Project deleted successfully");
     }
 }
