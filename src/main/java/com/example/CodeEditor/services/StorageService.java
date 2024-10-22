@@ -425,7 +425,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         return fileUtil.readFileContents(branchPath);
     }
 
-    public String getCurrentCommit(Project project, String branchName) throws IOException {
+    public String getCurrentCommit(Project project, String branchName) {
         String currentCommitPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\currentCommit";
         return fileUtil.readFileContents(currentCommitPath);
     }
@@ -447,10 +447,22 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             return;
         }
         Map<Long, ChangeHolder> changes = vcsReadChanges(project, branchName);
+        Map<Long, ChangeHolder> tracked = vcsReadTracked(project, branchName);
         String filePath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\snippets\\" + fileItem.getId() + "_" + fileItem.getName();
         String content = null;
         if (fileType == '-'){
             content = fileUtil.readFileContents(filePath);
+        }
+        if (changeType == Change.UPDATE){
+            tracked.remove(fileItem.getId());
+            String currentCommit = getCurrentCommit(project, branchName);
+            String currentSnippetPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\commits\\" + currentCommit + "\\snippets\\" + fileItem.getId() + "_" + fileItem.getName();
+            String currentSnippetContent = fileUtil.readFileContents(currentSnippetPath);
+            if (currentSnippetContent.equals(content)){
+                changes.remove(fileItem.getId());
+                vcsWriteChanges(project, branchName, changes);
+                return;
+            }
         }
         ChangeHolder change = ChangeHolder.builder()
                 .change(changeType)
@@ -459,7 +471,6 @@ public class StorageService { // TODO: split the storage service && Exception Ha
                 .build();
         changes.put(fileItem.getId(), change);
 
-        Map<Long, ChangeHolder> tracked = vcsReadTracked(project, branchName);
         tracked.remove(fileItem.getId());
         vcsWriteChanges(project, branchName, changes);
         vcsWriteTracked(project, branchName, tracked);

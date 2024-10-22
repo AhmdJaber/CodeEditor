@@ -99,9 +99,13 @@ public class FileUtil {
         }
     }
 
-    public String readFileContents(String fullPath) throws IOException {
+    public String readFileContents(String fullPath) {
         Path filePath = Path.of(fullPath);
-        return Files.readString(filePath);
+        try {
+            return Files.readString(filePath);
+        } catch (Exception e){
+            throw new IllegalArgumentException("Could not read the file " + fullPath);
+        }
     }
 
     public void writeObjectOnFile(Object object, String filePath) {

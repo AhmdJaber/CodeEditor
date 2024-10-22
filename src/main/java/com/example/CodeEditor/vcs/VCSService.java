@@ -48,7 +48,7 @@ public class VCSService {
             FileItem fileItem = fileItemService.getFileById(id);
             status.get("tracked").add(fileItem.getName());
         }
-        return status; //TODO: everything is working?
+        return status;
     }
 
     public List<String> add(Long projectId, List<String> files) throws IOException {
@@ -98,15 +98,15 @@ public class VCSService {
         return storageService.checkVCSProject(project);
     }
 
+    public void fork(Client client, Long projectId) {
+        Project project = projectRepository.findById(projectId).orElseThrow();
+        storageService.fork(project, client);
+    }
+
     // TODO: -------------------------------- :TODO
     // TODO:      T      O      D      O      :TODO
     // TODO: -------------------------------- :TODO
     public List<String> push(Project project){
         return null; //TODO: create the commit inside the branch (the snapshot that we created)
-    }
-
-    public void fork(Client client, Long projectId) {
-        Project project = projectRepository.findById(projectId).orElseThrow();
-        storageService.fork(project, client);
     }
 }
