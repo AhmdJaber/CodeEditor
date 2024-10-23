@@ -134,7 +134,7 @@ public class FileUtil {
         try{
             copyDirectory(sourceFile, targetFile);
         } catch (IOException e){
-            System.out.println("Failed to copy directory from " + source + " to " + target);
+            throw new RuntimeException("Failed to copy directory from " + source + " to " + target);
         }
     }
 

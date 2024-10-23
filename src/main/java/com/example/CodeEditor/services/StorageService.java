@@ -87,12 +87,16 @@ public class StorageService { // TODO: split the storage service && Exception Ha
 
     public void createProject(Client client, Project project){
         String projectPath = path + "\\" + client.getId() + "\\projects\\" + project.getId();
+        if (fileUtil.fileExists(projectPath)){
+            projectRepository.delete(project);
+            throw new IllegalArgumentException("Project with name " + project.getName() + " already exists");
+        }
         try{
             fileUtil.createFolder(projectPath);
             fileUtil.createFolder(projectPath + "\\tree");
             fileUtil.createFolder(projectPath + "\\snippets");
             fileUtil.createFolder(projectPath + "\\comments");
-            fileUtil.createFile(projectPath + "\\shared", ""); //TODO: remove?
+            fileUtil.createFile(projectPath + "\\shared", "");
             fileUtil.writeObjectOnFile(new ArrayList<>(), projectPath + "\\shared");
             fileUtil.writeObjectOnFile(new ArrayList<>(), projectPath + "\\shared_view");
             saveProjectDirectory(client, new ProjectDirectory(), project.getId());
@@ -364,8 +368,8 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         createFolderIfNotExists(vcsPath);
         fileUtil.createFile(vcsPath + "\\HEAD", "main");
         fileUtil.writeObjectOnFile(new HashMap<>(), vcsPath + "\\config");
-        vcsCreateBranch(vcsPath, "main");
-        createInitialCommit(project);
+        vcsCreateBranch(project, "main");
+        vcsCreateInitialCommit(project);
         //TODO: create the rest of the files and directories
     }
 
@@ -374,7 +378,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         return fileUtil.fileExists(vcsPath);
     }
 
-    private void createInitialCommit(Project project) throws IOException {
+    private void vcsCreateInitialCommit(Project project) throws IOException {
         String commitsPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\main\\commits";
         String commitId = project.getClient().getId().toString() + "%" + Instant.now().getEpochSecond() + "%" + "initial commit".hashCode();
         Map<Long, FileNode> projectStructure = loadEditorDirObj(project.getClient(), project.getId()).getTree();
@@ -396,11 +400,12 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             Long id = Long.parseLong(snippet.getName().split("_")[0]);
             fileUtil.createFile(commitsPath + "\\" + commitId + "\\snippets\\" + snippet.getName(), filesContent.get(id));
         }
-        setCurrentCommit(project, "main", commitId);
-        writeOnLog(project, project.getClient(), commitId, "main", "Initial commit");
+        vcsSetCurrentCommit(project, "main", commitId);
+        vcsWriteOnLog(project, project.getClient(), commitId, "main", "Initial commit");
     }
 
-    public void vcsCreateBranch(String vcsPath, String branchName) { //TODO: create the files and folders inside based on the cut from branch
+    public void vcsCreateBranch(Project project, String branchName) {
+        String vcsPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs";
         createFolderIfNotExists(vcsPath + "\\branches");
         File file = new File(vcsPath + "\\branches\\" + branchName);
         if (file.exists()){
@@ -408,12 +413,17 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         }
         createFolderIfNotExists(vcsPath + "\\branches\\" + branchName);
         createFolderIfNotExists(vcsPath + "\\branches\\" + branchName + "\\commits");
-        //TODO: move the file Current (that represent the current commit) to here, each branch will have a current commit!
         fileUtil.writeObjectOnFile(new HashMap<>(), vcsPath + "\\branches\\" + branchName + "\\changes");
         fileUtil.writeObjectOnFile(new HashMap<>(), vcsPath + "\\branches\\" + branchName + "\\tracked");
         fileUtil.writeObjectOnFile(new ArrayList<>(), vcsPath + "\\branches\\" + branchName + "\\log");
         fileUtil.createFile(vcsPath + "\\branches\\" + branchName + "\\currentCommit", "");
-        //TODO: create the rest of the files and directories (if any)
+    }
+
+    public void vcsCreateBranch(Project project, String branchName, String prevBranchName) {
+        String vcsPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs";
+        String prevBranchPath = vcsPath + "\\branches\\" + prevBranchName;
+        String newBranchPath = vcsPath + "\\branches\\" + branchName;
+        fileUtil.copyDirectory(prevBranchPath, newBranchPath);
     }
 
     public void vcsDelete(Project project) {
@@ -422,12 +432,16 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         fileUtil.deleteFolder(vcsPath);
     }
 
-    public String getCurrentBranch(Project project) throws IOException {
+    public String vcsGetCurrentBranch(Project project)  {
         String branchPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\HEAD";
-        return fileUtil.readFileContents(branchPath);
+        try{
+            return fileUtil.readFileContents(branchPath);
+        } catch (Exception e){
+            throw new IllegalStateException("Couldn't get the current branch");
+        }
     }
 
-    public String getCurrentCommit(Project project, String branchName) {
+    public String vcsGetCurrentCommit(Project project, String branchName) {
         String currentCommitPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\currentCommit";
         return fileUtil.readFileContents(currentCommitPath);
     }
@@ -457,7 +471,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         }
         if (changeType == Change.UPDATE){
             tracked.remove(fileItem.getId());
-            String currentCommit = getCurrentCommit(project, branchName);
+            String currentCommit = vcsGetCurrentCommit(project, branchName);
             String currentSnippetPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\commits\\" + currentCommit + "\\snippets\\" + fileItem.getId() + "_" + fileItem.getName();
             String currentSnippetContent = fileUtil.readFileContents(currentSnippetPath);
             if (currentSnippetContent.equals(content)){
@@ -580,23 +594,23 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             }
         }
         vcsWriteTracked(project, branchName, new HashMap<>());
-        writeOnLog(project, client, commitId, branchName, message);
-        setCurrentCommit(project, "main", commitId);
+        vcsWriteOnLog(project, client, commitId, branchName, message);
+        vcsSetCurrentCommit(project, branchName, commitId);
         return commitId;
         //TODO: think of scenarios
     }
 
-    public void setCurrentCommit(Project project, String branchName, String commitId){
+    public void vcsSetCurrentCommit(Project project, String branchName, String commitId){
         String currentPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\currentCommit";
         fileUtil.writeOnFile(Paths.get(currentPath), commitId);
     }
 
-    public List<String> log(Project project, String branchName){
+    public List<String> vcsLog(Project project, String branchName){
         String logPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\log";
         return (List<String>) fileUtil.readObjectFromFile(logPath);
     }
 
-    public void writeOnLog(Project project, Client client, String commitId, String branchName, String message){
+    public void vcsWriteOnLog(Project project, Client client, String commitId, String branchName, String message){
         String newLog = "Commit Id:\t" + commitId + "\nAuthor   :\t" + client.getName() + " " + client.getEmail() + "\nDate     :\t\t" + Instant.now() + "\n\tMessage: " + message;
         String logPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\log";
         List<String> log = (List<String>) fileUtil.readObjectFromFile(logPath);
@@ -604,7 +618,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         fileUtil.writeObjectOnFile(log, logPath);
     }
 
-    public void revert(Project project, String branchName, String commitId) throws Exception {
+    public void vcsRevert(Project project, String branchName, String commitId) throws Exception {
         String projectPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId();
         fileUtil.deleteFolder(projectPath + "\\snippets");
         fileUtil.deleteFile(projectPath + "\\tree\\" + "_treeObject.ser");
@@ -623,21 +637,62 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             String content = fileUtil.readFileContents(snippet.getAbsolutePath());
             fileUtil.createFile(projectPath + "\\snippets\\" + snippet.getName(), content);
         }
-        setCurrentCommit(project, branchName, commitId);
+        vcsSetCurrentCommit(project, branchName, commitId);
         vcsWriteTracked(project, branchName, new HashMap<>());
         vcsWriteChanges(project, branchName, new HashMap<>());
     }
 
-    public void fork(Project project, Client client) {
+    public void vcsFork(Project project, Client client) {
         String projectPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId();
         Project buildProject = Project.builder()
                 .name(project.getName())
                 .client(client)
                 .build();
+        if (!checkProjectPublic(project.getId())){
+            throw new IllegalArgumentException("Cannot fork this project");
+        }
         Project newProject = projectRepository.save(buildProject);
         String clientProjectsPath = path + "\\" + client.getId() + "\\projects\\" + newProject.getId();
         createProject(client, newProject);
         fileUtil.copyDirectory(projectPath + "\\tree", clientProjectsPath + "\\tree");
         fileUtil.copyDirectory(projectPath + "\\snippets", clientProjectsPath + "\\snippets");
+    }
+
+    public void vcsDeleteBranch(Project project, String branchName) {
+        if (Objects.equals(branchName, "main")){
+            throw new IllegalStateException("Couldn't delete the defualt branch 'main'");
+        }
+        String branchPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName;
+        fileUtil.deleteFolder(branchPath);
+    }
+
+    public void vcsCheckout(Project project, String branchName) {
+        String vcsPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs";
+        File[] branchces = fileUtil.getSubFiles(vcsPath + "\\branches");
+        boolean checkBranchExists = false;
+        for(File branch: branchces){
+            checkBranchExists |= branch.getName().equals(branchName);
+        }
+        if (!checkBranchExists){
+            throw new IllegalArgumentException("Branch " + branchName + " does not exist");
+        }
+        String branchPath = vcsPath + "\\HEAD";
+        fileUtil.writeOnFile(Paths.get(branchPath), branchName);
+    }
+
+    public List<String> vcsAllBranches(Project project) {
+        String branchesPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches";
+        File[] branches = fileUtil.getSubFiles(branchesPath);
+        List<String> branchesNamse = new ArrayList<>();
+        String currentBranch = vcsGetCurrentBranch(project);
+        branchesNamse.add("* " + currentBranch);
+        for (File file: branches){
+            if (file.getName().equals(currentBranch)){
+                continue;
+            }
+            branchesNamse.add(file.getName());
+        }
+
+        return branchesNamse;
     }
 }

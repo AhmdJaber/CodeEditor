@@ -92,4 +92,53 @@ public class VCSController {
         vcsService.fork(client, projectId);
         return ResponseEntity.ok("Forked successfully");
     }
+
+    @PostMapping("/fork")
+    public ResponseEntity<?> fork(@RequestBody Map<String, String> body, @RequestHeader("Authorization") String reqToken) throws Exception {
+        String ownerEmail = body.get("owner");
+        String projectName = body.get("project");
+        System.out.println("HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERER");
+        System.out.println(ownerEmail + " " + projectName);
+        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
+        Client client = clientRepository.findByEmail(senderEmail).orElseThrow();
+        Client owner = clientRepository.findByEmail(ownerEmail).orElseThrow();
+        Project project = projectRepository.findByNameAndClient(projectName, owner).orElseThrow();
+        if (Objects.equals(project.getClient(), client)){
+            return ResponseEntity.badRequest().body("Cannot fork projects you own");
+        }
+        vcsService.fork(client, project);
+        return ResponseEntity.ok("Forked successfully");
+    }
+
+    @GetMapping("/branches/{projectId}")
+    public ResponseEntity<?> allBranches(@PathVariable Long projectId){
+        return ResponseEntity.ok(vcsService.allBranches(projectId));
+    }
+
+    @PostMapping("/create-branch/{projectId}")
+    public ResponseEntity<?> createBranch(@PathVariable Long projectId, @RequestBody String branchName) throws Exception {
+        vcsService.createBranch(projectId, branchName);
+        return ResponseEntity.ok("Created new branch: " + branchName);
+    }
+
+    @DeleteMapping("/delete-branch/{projectId}")
+    public ResponseEntity<?> deleteBranch(@PathVariable Long projectId, @RequestBody String branchName) throws Exception {
+        vcsService.deleteBranch(projectId, branchName);
+        return ResponseEntity.ok("Deleted branch: " + branchName);
+    }
+
+    @PutMapping("/checkout/{projectId}")
+    public ResponseEntity<?> chekcout(@PathVariable Long projectId, @RequestBody String branchName) throws Exception {
+        vcsService.checkout(projectId, branchName);
+        return ResponseEntity.ok("Switched to branch: " + branchName);
+    }
+
+    @PostMapping("/checkout-create/{projectId}")
+    public ResponseEntity<?> checkoutCreate(@PathVariable Long projectId, @RequestBody String branchName) throws Exception {
+        vcsService.createBranch(projectId, branchName);
+        vcsService.checkout(projectId, branchName);
+        return ResponseEntity.ok("Created new branch: " + branchName + " and switched to it");
+    }
+
+
 }
