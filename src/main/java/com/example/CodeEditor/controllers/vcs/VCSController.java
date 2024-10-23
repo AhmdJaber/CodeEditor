@@ -60,6 +60,7 @@ public class VCSController {
     public ResponseEntity<?> commit(@PathVariable Long projectId, @RequestBody String message, @RequestHeader("Authorization") String reqToken) throws Exception {
         String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
         Client client = clientRepository.findByEmail(senderEmail).orElseThrow();
+        message = message.substring(1, message.length() - 1);
         vcsService.commit(projectId, client, message);
         return ResponseEntity.ok("Changes committed!"); //TODO: return the list of changes that have been commited
     }
@@ -97,8 +98,6 @@ public class VCSController {
     public ResponseEntity<?> fork(@RequestBody Map<String, String> body, @RequestHeader("Authorization") String reqToken) throws Exception {
         String ownerEmail = body.get("owner");
         String projectName = body.get("project");
-        System.out.println("HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERER");
-        System.out.println(ownerEmail + " " + projectName);
         String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
         Client client = clientRepository.findByEmail(senderEmail).orElseThrow();
         Client owner = clientRepository.findByEmail(ownerEmail).orElseThrow();

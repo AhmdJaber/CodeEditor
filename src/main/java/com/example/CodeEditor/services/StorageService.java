@@ -466,7 +466,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         Map<Long, ChangeHolder> tracked = vcsReadTracked(project, branchName);
         String filePath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\snippets\\" + fileItem.getId() + "_" + fileItem.getName();
         String content = null;
-        if (fileType == '-'){
+        if (fileType == '-' && changeType != Change.DELETE){
             content = fileUtil.readFileContents(filePath);
         }
         if (changeType == Change.UPDATE){

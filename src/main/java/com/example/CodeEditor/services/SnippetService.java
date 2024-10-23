@@ -28,7 +28,6 @@ public class SnippetService {
     private ProjectRepository projectRepository;
 
     public Long createSnippet(Client editor, Snippet snippet, Long projectId) throws IOException { //TODO: extract method for duplicates
-        String branchName = "main"; //TODO: get the branch name!!
         Long snippetId = fileItemService.createFile(new FileItem(snippet.getName(), snippet.getParentId())).getId();
         snippet.setId(snippetId);
         ProjectDirectory projectDirectory = storageService.loadEditorDirObj(editor, projectId);
@@ -38,12 +37,12 @@ public class SnippetService {
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
+        String branchName = storageService.vcsGetCurrentBranch(project);
         storageService.vcsMakeChange(project, branchName, '-', Change.CREATE, snippet);
         return snippetId;
     }
 
     public void removeSnippet(Client editor, Snippet snippet, Long projectId) throws IOException {
-        String branchName = "main"; //TODO: get the branch name!!
         ProjectDirectory projectDirectory = storageService.loadEditorDirObj(editor, projectId);
         projectDirectory.getTree().get(snippet.getParentId()).getFileItems().remove(snippet); // TODO: it deletes the object?
         storageService.saveProjectDirectory(editor, projectDirectory, projectId);
@@ -52,16 +51,17 @@ public class SnippetService {
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
+        String branchName = storageService.vcsGetCurrentBranch(project);
         storageService.vcsMakeChange(project, branchName, '-', Change.DELETE, snippet);
     }
 
     public void updateSnippet(Client editor, Long id, String name, String updatedContent, Long projectId) throws IOException {
-        String branchName = "main"; //TODO: get the branch name!!
         storageService.updateSnippet(editor, id, name, updatedContent, projectId);
         System.out.println("Snippet " + id + "_" + name + " has been updated");
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
+        String branchName = storageService.vcsGetCurrentBranch(project);
         FileItem snippet = fileItemService.getFileById(id);
         storageService.vcsMakeChange(project, branchName, '-', Change.UPDATE, snippet);
     }

@@ -27,7 +27,6 @@ public class FolderService {
     private ProjectRepository projectRepository;
 
     public Long createFolder(Client editor, Folder folder, Long projectId) throws IOException {
-        String branchName = "main"; //TODO: get the branch name !!
         Long folderId = fileItemService.createFile(new FileItem(folder.getName(), folder.getParentId())).getId();
         folder.setId(folderId);
         ProjectDirectory projectDirectory = storageService.loadEditorDirObj(editor, projectId);
@@ -37,12 +36,12 @@ public class FolderService {
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
+        String branchName = storageService.vcsGetCurrentBranch(project);
         storageService.vcsMakeChange(project, branchName, 'd', Change.CREATE, folder);
         return folderId;
     }
 
     public void removeFolder(Client editor, Folder folder, Long projectId) throws IOException {
-        String branchName = "main"; //TODO: get the branch name !!
         ProjectDirectory projectDirectory = storageService.loadEditorDirObj(editor, projectId);
         System.out.println(projectDirectory);
         projectDirectory.getTree().get(folder.getParentId()).getFileItems().remove(folder);
@@ -51,6 +50,7 @@ public class FolderService {
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
+        String branchName = storageService.vcsGetCurrentBranch(project);
         storageService.vcsMakeChange(project, branchName, 'd', Change.DELETE, folder);
     }
 }
