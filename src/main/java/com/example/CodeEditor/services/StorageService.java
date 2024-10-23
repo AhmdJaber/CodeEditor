@@ -27,7 +27,7 @@ import java.util.*;
 
 @Service
 public class StorageService { // TODO: split the storage service && Exception Handling && Clean Code
-    private final String path = "C:\\Users\\ahmad\\OneDrive\\Desktop\\Atypon\\Capstone Project\\filesystem\\users";
+    private final String path = ".\\src\\main\\resources\\editors";
     @Autowired
     private FileUtil fileUtil;
 
@@ -36,8 +36,10 @@ public class StorageService { // TODO: split the storage service && Exception Ha
 
     @Autowired
     private EncryptionUtil encryptionUtil;
+
     @Autowired
     private ClientRepository clientRepository;
+
     @Autowired
     private ProjectRepository projectRepository;
 

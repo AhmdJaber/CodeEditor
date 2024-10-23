@@ -66,7 +66,9 @@ public class EditorService {
             for (Project project : projects) {
                 List<Client> allSharedWith = storageService.getAllSharedWith(project.getClient().getId(), project.getId());
                 for (Client sharedWith : allSharedWith) {
-                    storageService.removesharedProject(sharedWith, project.getId());
+                    if (sharedWith != null) {
+                        storageService.removesharedProject(sharedWith, project.getId());
+                    }
                 }
                 projectRepository.delete(project);
             }
