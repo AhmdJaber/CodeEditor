@@ -344,19 +344,19 @@ public class StorageService { // TODO: split the storage service && Exception Ha
 
     public ProjectDirectory loadEditorDirObj(Client client, Long projectId) {
         String filePath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\tree\\" + "_treeObject.ser";
-        Path path = Paths.get(filePath);
-        if (Files.exists(path)) {
+        Path projectPath = Paths.get(filePath);
+        if (Files.exists(projectPath)) {
             return (ProjectDirectory) fileUtil.readObjectFromFile(filePath);
         } else {
-            path = Paths.get(path.toString().split("\\.")[0]);
-            if (Files.exists(path)) {
+            projectPath = Paths.get(path + "\\" + client.getId() + "\\projects\\" + projectId + "\\tree\\" + "_treeObject");
+            if (Files.exists(projectPath)) {
                 try{
-                    return (ProjectDirectory) fileUtil.readObjectFromFile(encryptionUtil.decrypt(fileUtil.readFileContents(path.toString())));
+                    return (ProjectDirectory) fileUtil.readObjectFromFile(encryptionUtil.decrypt(fileUtil.readFileContents(projectPath.toString())));
                 } catch (Exception e){
                     throw new RuntimeException(e);
                 }
             } else {
-                throw new RuntimeException("Project directory not found " + path);
+                throw new RuntimeException("Project directory not found " + projectPath);
             }
         }
     }
@@ -618,12 +618,13 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         fileUtil.writeObjectOnFile(log, logPath);
     }
 
-    public void vcsRevert(Project project, String branchName, String commitId) throws Exception {
+    public void vcsRevert(Project project, String branchName, String commitId)  {
         String projectPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId();
         fileUtil.deleteFolder(projectPath + "\\snippets");
-        fileUtil.deleteFile(projectPath + "\\tree\\" + "_treeObject.ser");
+        fileUtil.deleteFolder(projectPath + "\\tree");
         fileUtil.createFolder(projectPath + "\\snippets");
 
+        fileUtil.createFolder(projectPath + "\\tree");
         String commitPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\commits\\" + commitId;
         String projectDirPath = commitPath + "\\tree";
         File projectDir = fileUtil.getSubFiles(projectDirPath)[0];
@@ -678,6 +679,8 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         }
         String branchPath = vcsPath + "\\HEAD";
         fileUtil.writeOnFile(Paths.get(branchPath), branchName);
+        String currentCommitId = vcsGetCurrentCommit(project, branchName);
+        vcsRevert(project, branchName, currentCommitId);
     }
 
     public List<String> vcsAllBranches(Project project) {

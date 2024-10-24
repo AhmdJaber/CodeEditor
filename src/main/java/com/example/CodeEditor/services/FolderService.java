@@ -36,8 +36,10 @@ public class FolderService {
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
-        String branchName = storageService.vcsGetCurrentBranch(project);
-        storageService.vcsMakeChange(project, branchName, 'd', Change.CREATE, folder);
+        if (storageService.checkVCSProject(project)){
+            String branchName = storageService.vcsGetCurrentBranch(project);
+            storageService.vcsMakeChange(project, branchName, 'd', Change.CREATE, folder);
+        }
         return folderId;
     }
 
@@ -50,7 +52,9 @@ public class FolderService {
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
-        String branchName = storageService.vcsGetCurrentBranch(project);
-        storageService.vcsMakeChange(project, branchName, 'd', Change.DELETE, folder);
+        if (storageService.checkVCSProject(project)) {
+            String branchName = storageService.vcsGetCurrentBranch(project);
+            storageService.vcsMakeChange(project, branchName, 'd', Change.DELETE, folder);
+        }
     }
 }

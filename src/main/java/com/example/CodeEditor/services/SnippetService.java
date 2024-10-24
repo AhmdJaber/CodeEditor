@@ -37,8 +37,10 @@ public class SnippetService {
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
-        String branchName = storageService.vcsGetCurrentBranch(project);
-        storageService.vcsMakeChange(project, branchName, '-', Change.CREATE, snippet);
+        if (storageService.checkVCSProject(project)) {
+            String branchName = storageService.vcsGetCurrentBranch(project);
+            storageService.vcsMakeChange(project, branchName, '-', Change.CREATE, snippet);
+        }
         return snippetId;
     }
 
@@ -51,8 +53,10 @@ public class SnippetService {
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
-        String branchName = storageService.vcsGetCurrentBranch(project);
-        storageService.vcsMakeChange(project, branchName, '-', Change.DELETE, snippet);
+        if (storageService.checkVCSProject(project)) {
+            String branchName = storageService.vcsGetCurrentBranch(project);
+            storageService.vcsMakeChange(project, branchName, '-', Change.DELETE, snippet);
+        }
     }
 
     public void updateSnippet(Client editor, Long id, String name, String updatedContent, Long projectId) throws IOException {
@@ -61,9 +65,11 @@ public class SnippetService {
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
-        String branchName = storageService.vcsGetCurrentBranch(project);
         FileItem snippet = fileItemService.getFileById(id);
-        storageService.vcsMakeChange(project, branchName, '-', Change.UPDATE, snippet);
+        if (storageService.checkVCSProject(project)) {
+            String branchName = storageService.vcsGetCurrentBranch(project);
+            storageService.vcsMakeChange(project, branchName, '-', Change.UPDATE, snippet);
+        }
     }
 
     public String loadSnippet(Client editor, Long id, String name, Long projectId) throws Exception {
