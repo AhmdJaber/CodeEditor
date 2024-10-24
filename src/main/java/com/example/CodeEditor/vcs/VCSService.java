@@ -2,7 +2,7 @@ package com.example.CodeEditor.vcs;
 
 import com.example.CodeEditor.model.component.files.FileItem;
 import com.example.CodeEditor.model.component.files.Project;
-import com.example.CodeEditor.model.users.client.Client;
+import com.example.CodeEditor.model.clients.Client;
 import com.example.CodeEditor.repository.ProjectRepository;
 import com.example.CodeEditor.services.FileItemService;
 import com.example.CodeEditor.services.StorageService;

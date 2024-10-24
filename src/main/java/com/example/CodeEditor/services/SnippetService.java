@@ -4,8 +4,8 @@ import com.example.CodeEditor.model.component.Comment;
 import com.example.CodeEditor.model.component.files.FileItem;
 import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.component.files.Snippet;
-import com.example.CodeEditor.model.users.client.Client;
-import com.example.CodeEditor.model.users.editor.ProjectDirectory;
+import com.example.CodeEditor.model.clients.Client;
+import com.example.CodeEditor.model.component.ProjectStructure;
 import com.example.CodeEditor.repository.ProjectRepository;
 import com.example.CodeEditor.vcs.Change;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Service
@@ -30,9 +29,9 @@ public class SnippetService {
     public Long createSnippet(Client editor, Snippet snippet, Long projectId) throws IOException { //TODO: extract method for duplicates
         Long snippetId = fileItemService.createFile(new FileItem(snippet.getName(), snippet.getParentId())).getId();
         snippet.setId(snippetId);
-        ProjectDirectory projectDirectory = storageService.loadEditorDirObj(editor, projectId);
-        projectDirectory.getTree().get(snippet.getParentId()).getFileItems().add(snippet);
-        storageService.saveProjectDirectory(editor, projectDirectory, projectId);
+        ProjectStructure projectStructure = storageService.loadEditorDirObj(editor, projectId);
+        projectStructure.getTree().get(snippet.getParentId()).getFileItems().add(snippet);
+        storageService.saveProjectStructure(editor, projectStructure, projectId);
         storageService.createSnippet(editor, snippet, projectId);
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
@@ -45,9 +44,9 @@ public class SnippetService {
     }
 
     public void removeSnippet(Client editor, Snippet snippet, Long projectId) throws IOException {
-        ProjectDirectory projectDirectory = storageService.loadEditorDirObj(editor, projectId);
-        projectDirectory.getTree().get(snippet.getParentId()).getFileItems().remove(snippet); // TODO: it deletes the object?
-        storageService.saveProjectDirectory(editor, projectDirectory, projectId);
+        ProjectStructure projectStructure = storageService.loadEditorDirObj(editor, projectId);
+        projectStructure.getTree().get(snippet.getParentId()).getFileItems().remove(snippet); // TODO: it deletes the object?
+        storageService.saveProjectStructure(editor, projectStructure, projectId);
         storageService.deleteSnippet(editor, snippet, projectId);
         fileItemService.removeFile(snippet.getId()); // TODO: added, fine?
         Project project = projectRepository.findById(projectId).orElseThrow(

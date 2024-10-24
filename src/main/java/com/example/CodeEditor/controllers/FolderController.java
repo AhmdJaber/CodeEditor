@@ -1,7 +1,7 @@
 package com.example.CodeEditor.controllers;
 
 import com.example.CodeEditor.model.component.files.Folder;
-import com.example.CodeEditor.model.users.client.Client;
+import com.example.CodeEditor.model.clients.Client;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.services.FolderService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -4,8 +4,8 @@ import com.example.CodeEditor.model.component.files.FileItem;
 import com.example.CodeEditor.model.component.files.FileNode;
 import com.example.CodeEditor.model.component.files.Folder;
 import com.example.CodeEditor.model.component.files.Project;
-import com.example.CodeEditor.model.users.client.Client;
-import com.example.CodeEditor.model.users.editor.ProjectDirectory;
+import com.example.CodeEditor.model.clients.Client;
+import com.example.CodeEditor.model.component.ProjectStructure;
 import com.example.CodeEditor.repository.ProjectRepository;
 import com.example.CodeEditor.vcs.Change;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,10 +29,10 @@ public class FolderService {
     public Long createFolder(Client editor, Folder folder, Long projectId) throws IOException {
         Long folderId = fileItemService.createFile(new FileItem(folder.getName(), folder.getParentId())).getId();
         folder.setId(folderId);
-        ProjectDirectory projectDirectory = storageService.loadEditorDirObj(editor, projectId);
-        projectDirectory.getTree().get(folder.getParentId()).getFileItems().add(folder);
-        projectDirectory.getTree().put(folderId, new FileNode(folder.getName(), new ArrayList<>(), folder.getParentId()));
-        storageService.saveProjectDirectory(editor, projectDirectory, projectId);
+        ProjectStructure projectStructure = storageService.loadEditorDirObj(editor, projectId);
+        projectStructure.getTree().get(folder.getParentId()).getFileItems().add(folder);
+        projectStructure.getTree().put(folderId, new FileNode(folder.getName(), new ArrayList<>(), folder.getParentId()));
+        storageService.saveProjectStructure(editor, projectStructure, projectId);
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );
@@ -44,11 +44,11 @@ public class FolderService {
     }
 
     public void removeFolder(Client editor, Folder folder, Long projectId) throws IOException {
-        ProjectDirectory projectDirectory = storageService.loadEditorDirObj(editor, projectId);
-        System.out.println(projectDirectory);
-        projectDirectory.getTree().get(folder.getParentId()).getFileItems().remove(folder);
-        projectDirectory.getTree().remove(folder.getId());
-        storageService.saveProjectDirectory(editor, projectDirectory, projectId);
+        ProjectStructure projectStructure = storageService.loadEditorDirObj(editor, projectId);
+        System.out.println(projectStructure);
+        projectStructure.getTree().get(folder.getParentId()).getFileItems().remove(folder);
+        projectStructure.getTree().remove(folder.getId());
+        storageService.saveProjectStructure(editor, projectStructure, projectId);
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new NoSuchElementException("No Project with id " + projectId)
         );

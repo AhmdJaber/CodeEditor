@@ -1,5 +1,6 @@
-package com.example.CodeEditor.model.users.client;
+package com.example.CodeEditor.model.component;
 
+import com.example.CodeEditor.model.clients.Client;
 import jakarta.persistence.*;
 import lombok.*;
 import net.minidev.json.annotate.JsonIgnore;

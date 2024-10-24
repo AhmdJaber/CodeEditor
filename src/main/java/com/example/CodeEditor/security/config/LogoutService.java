@@ -1,6 +1,6 @@
 package com.example.CodeEditor.security.config;
 
-import com.example.CodeEditor.model.users.client.Token;
+import com.example.CodeEditor.model.component.Token;
 import com.example.CodeEditor.repository.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

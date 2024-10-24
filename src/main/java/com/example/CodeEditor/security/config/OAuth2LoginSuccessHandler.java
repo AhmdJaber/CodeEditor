@@ -1,11 +1,8 @@
 package com.example.CodeEditor.security.config;
 
-import com.example.CodeEditor.controllers.auth.AuthenticationService;
-import com.example.CodeEditor.controllers.auth.RegisterRequest;
-import com.example.CodeEditor.model.users.client.Client;
+import com.example.CodeEditor.model.clients.Client;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.security.jwt.JwtService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +13,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor

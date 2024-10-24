@@ -1,6 +1,6 @@
 package com.example.CodeEditor.repository;
 
-import com.example.CodeEditor.model.users.client.Client;
+import com.example.CodeEditor.model.clients.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

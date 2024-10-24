@@ -2,60 +2,49 @@ package com.example.CodeEditor.services;
 
 import com.example.CodeEditor.enums.Role;
 import com.example.CodeEditor.model.component.files.Project;
-import com.example.CodeEditor.model.users.client.Client;
-import com.example.CodeEditor.model.users.client.Token;
-import com.example.CodeEditor.model.users.editor.Editor;
-import com.example.CodeEditor.model.users.editor.ProjectDirectory;
+import com.example.CodeEditor.model.clients.Client;
+import com.example.CodeEditor.model.component.Token;
 import com.example.CodeEditor.repository.ClientRepository;
-import com.example.CodeEditor.repository.EditorRepository;
 import com.example.CodeEditor.repository.ProjectRepository;
 import com.example.CodeEditor.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
-public class EditorService {
+public class ClientService {
     @Autowired
-    private EditorRepository editorRepository;
-
-    @Autowired
-    private AuthenticationManager manager;
+    private ClientRepository clientRepository;
 
     @Autowired
     private StorageService storageService;
 
     @Autowired
-    private ClientRepository clientRepository;
-    @Autowired
     private ProjectRepository projectRepository;
+
     @Autowired
     private TokenRepository tokenRepository;
 
-    public Editor getEditorById(Long id) {
-        return editorRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("No editor found with id: " + id)
+    public Client getClientById(Long id) {
+        return clientRepository.findById(id).orElseThrow(
+                () -> new RuntimeException("No client found with id: " + id)
         );
     }
 
-    public void addEditor(Client editor) {
-        storageService.createUser(editor);
-        clientRepository.save(editor);
+    public void addClient(Client client) {
+        storageService.createUser(client);
+        clientRepository.save(client);
     }
 
-    public Editor updateEditor(Long id, Editor updatedEditor) {
-        return editorRepository.findById(id).map(editor -> {
-            editor.setName(updatedEditor.getName());
-            editor.setPassword(updatedEditor.getPassword());
-            return editorRepository.save(editor);
-        }).orElseThrow(() -> new NoSuchElementException("Admin with ID " + id + " not found"));
+    public Client updateClient(Long id, Client updatedClient) {
+        return clientRepository.findById(id).map(editor -> {
+            editor.setName(updatedClient.getName());
+            editor.setPassword(updatedClient.getPassword());
+            return clientRepository.save(editor);
+        }).orElseThrow(() -> new NoSuchElementException("Client with ID " + id + " not found"));
 
     }
 
@@ -79,6 +68,13 @@ public class EditorService {
         }
     }
 
+    public void deleteClient(Long id){
+        if (!clientRepository.existsById(id)) {
+            throw new NoSuchElementException("Client with ID " + id + " not found");
+        }
+        clientRepository.deleteById(id);
+    }
+
     public List<Client> getAllEditors(){
         List<Client> clients = clientRepository.findAll();
         List<Client> editors = new ArrayList<>();
@@ -90,15 +86,7 @@ public class EditorService {
         return editors;
     }
 
-    public Editor getEditorByEmail(String email){
-        return editorRepository.findByEmail(email); // TODO: return optional
-    }
-
-    public boolean authenticate(Editor editor){
-        Authentication auth = manager.authenticate(
-                new UsernamePasswordAuthenticationToken(editor.getEmail(), editor.getPassword())
-        );
-
-        return auth.isAuthenticated();
+    public List<Client> getAllClients(){
+        return clientRepository.findAll();
     }
 }

@@ -1,13 +1,14 @@
-package com.example.CodeEditor.controllers.auth;
+package com.example.CodeEditor.services;
 
+import com.example.CodeEditor.dto.RegisterDTO;
+import com.example.CodeEditor.dto.AuthenticationDTO;
 import com.example.CodeEditor.enums.Role;
-import com.example.CodeEditor.model.users.client.Client;
-import com.example.CodeEditor.model.users.client.Token;
+import com.example.CodeEditor.model.clients.Client;
+import com.example.CodeEditor.model.component.Token;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.TokenRepository;
 import com.example.CodeEditor.security.AuthenticationResponse;
 import com.example.CodeEditor.security.jwt.JwtService;
-import com.example.CodeEditor.services.EditorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -38,12 +39,12 @@ public class AuthenticationService {
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private EditorService editorService;
+    private ClientService clientService;
 
     @Autowired
     private TokenRepository tokenRepository;
 
-    public AuthenticationResponse register(RegisterRequest request, String role) throws IOException { // TODO: move it to the ClientService
+    public AuthenticationResponse register(RegisterDTO request, String role) throws IOException { // TODO: move it to the ClientService
         Client client = Client
                 .builder()
                 .name(request.getName())
@@ -53,7 +54,7 @@ public class AuthenticationService {
                 .build();
         Client savedClient = clientRepository.save(client);
         if (Role.valueOf(role) == Role.EDITOR){
-            editorService.addEditor(client);
+            clientService.addClient(client);
         }
         String accessToken = jwtService.generateAccessToken(client);
         String refreshToken = jwtService.generateRefreshToken(client);
@@ -72,7 +73,7 @@ public class AuthenticationService {
         tokenRepository.save(token);
     }
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request, String role) {
+    public AuthenticationResponse authenticate(AuthenticationDTO request, String role) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),

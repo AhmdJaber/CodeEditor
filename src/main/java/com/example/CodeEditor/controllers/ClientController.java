@@ -1,12 +1,12 @@
 package com.example.CodeEditor.controllers;
 
 import com.example.CodeEditor.model.component.files.Project;
-import com.example.CodeEditor.model.users.client.Client;
-import com.example.CodeEditor.model.users.editor.ProjectDirectory;
+import com.example.CodeEditor.model.clients.Client;
+import com.example.CodeEditor.model.component.ProjectStructure;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.ProjectRepository;
 import com.example.CodeEditor.security.jwt.JwtService;
-import com.example.CodeEditor.services.EditorService;
+import com.example.CodeEditor.services.ClientService;
 import com.example.CodeEditor.services.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,18 +32,18 @@ public class ClientController {
     private JwtService jwtService;
 
     @Autowired
-    private EditorService editorService;
+    private ClientService clientService;
 
     @Autowired
     private ProjectRepository projectRepository;
 
     @GetMapping("/all-editors")
     public List<Client> allEditors(){
-        return editorService.getAllEditors();
+        return clientService.getAllEditors();
     }
 
     @GetMapping("/directory/{ownerId}/{projectId}")
-    public ProjectDirectory getEditorDirectory(@PathVariable Long ownerId, @PathVariable Long projectId) { // TODO: clean "security"?
+    public ProjectStructure getEditorDirectory(@PathVariable Long ownerId, @PathVariable Long projectId) { // TODO: clean "security"?
         Client editor = clientRepository.findById(ownerId).orElseThrow();
         return storageService.loadEditorDirObj(editor, projectId);
     }

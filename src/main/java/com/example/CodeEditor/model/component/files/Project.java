@@ -1,7 +1,6 @@
 package com.example.CodeEditor.model.component.files;
 
-import com.example.CodeEditor.model.users.client.Client;
-import com.example.CodeEditor.model.users.editor.ProjectDirectory;
+import com.example.CodeEditor.model.clients.Client;
 import jakarta.persistence.*;
 import lombok.*;
 import net.minidev.json.annotate.JsonIgnore;

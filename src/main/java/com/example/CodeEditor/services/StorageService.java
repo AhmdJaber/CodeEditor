@@ -5,8 +5,8 @@ import com.example.CodeEditor.model.component.files.FileItem;
 import com.example.CodeEditor.model.component.files.FileNode;
 import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.component.files.Snippet;
-import com.example.CodeEditor.model.users.client.Client;
-import com.example.CodeEditor.model.users.editor.ProjectDirectory;
+import com.example.CodeEditor.model.clients.Client;
+import com.example.CodeEditor.model.component.ProjectStructure;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.FileItemRepository;
 import com.example.CodeEditor.repository.ProjectRepository;
@@ -99,7 +99,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
             fileUtil.createFile(projectPath + "\\shared", "");
             fileUtil.writeObjectOnFile(new ArrayList<>(), projectPath + "\\shared");
             fileUtil.writeObjectOnFile(new ArrayList<>(), projectPath + "\\shared_view");
-            saveProjectDirectory(client, new ProjectDirectory(), project.getId());
+            saveProjectStructure(client, new ProjectStructure(), project.getId());
         } catch (Exception e){
             throw new IllegalStateException("Failed to create folders on " + projectPath, e);
         }
@@ -328,30 +328,30 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         return (List<Comment>) fileUtil.readObjectFromFile(commentPath);
     }
 
-    public void saveProjectDirectory(Client client, ProjectDirectory projectDirectory, Long projectId) throws IOException {
+    public void saveProjectStructure(Client client, ProjectStructure projectStructure, Long projectId) throws IOException {
         String dirPath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\tree\\";
         createFolderIfNotExists(dirPath);
 
         File file = new File(dirPath + "_treeObject.ser");
         try (FileOutputStream fileOutStream = new FileOutputStream(file);
              ObjectOutputStream objectOutStream = new ObjectOutputStream(fileOutStream)){
-            objectOutStream.writeObject(projectDirectory);
+            objectOutStream.writeObject(projectStructure);
             System.out.println("Object written to " + file.getAbsolutePath());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public ProjectDirectory loadEditorDirObj(Client client, Long projectId) {
+    public ProjectStructure loadEditorDirObj(Client client, Long projectId) {
         String filePath = path + "\\" + client.getId() + "\\projects\\" + projectId + "\\tree\\" + "_treeObject.ser";
         Path projectPath = Paths.get(filePath);
         if (Files.exists(projectPath)) {
-            return (ProjectDirectory) fileUtil.readObjectFromFile(filePath);
+            return (ProjectStructure) fileUtil.readObjectFromFile(filePath);
         } else {
             projectPath = Paths.get(path + "\\" + client.getId() + "\\projects\\" + projectId + "\\tree\\" + "_treeObject");
             if (Files.exists(projectPath)) {
                 try{
-                    return (ProjectDirectory) fileUtil.readObjectFromFile(encryptionUtil.decrypt(fileUtil.readFileContents(projectPath.toString())));
+                    return (ProjectStructure) fileUtil.readObjectFromFile(encryptionUtil.decrypt(fileUtil.readFileContents(projectPath.toString())));
                 } catch (Exception e){
                     throw new RuntimeException(e);
                 }
@@ -382,7 +382,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         String commitsPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\main\\commits";
         String commitId = project.getClient().getId().toString() + "%" + Instant.now().getEpochSecond() + "%" + "initial commit".hashCode();
         Map<Long, FileNode> projectStructure = loadEditorDirObj(project.getClient(), project.getId()).getTree();
-        ProjectDirectory projectDirectory = new ProjectDirectory(projectStructure);
+        ProjectStructure structure = new ProjectStructure(projectStructure);
         File[] allSnippets = fileUtil.getSubFiles(path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\snippets");
         Map<Long, String> filesContent = new HashMap<>();
         for(File snippet : allSnippets){
@@ -395,7 +395,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         fileUtil.createFolder(commitsPath + "\\" + commitId);
         fileUtil.createFolder(commitsPath + "\\" + commitId + "\\snippets");
         fileUtil.createFolder(commitsPath + "\\" + commitId + "\\tree");
-        fileUtil.writeObjectOnFile(projectDirectory, commitsPath + "\\" + commitId + "\\tree\\" + "_treeObject.ser");
+        fileUtil.writeObjectOnFile(structure, commitsPath + "\\" + commitId + "\\tree\\" + "_treeObject.ser");
         for(File snippet: allSnippets){
             Long id = Long.parseLong(snippet.getName().split("_")[0]);
             fileUtil.createFile(commitsPath + "\\" + commitId + "\\snippets\\" + snippet.getName(), filesContent.get(id));
@@ -537,7 +537,7 @@ public class StorageService { // TODO: split the storage service && Exception Ha
         String commitId = client.getId().toString() + "%" + Instant.now().getEpochSecond() + "%" + message.hashCode();
         String commitsPath = path + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\commits";
         Map<Long, ChangeHolder> tracked = vcsReadTracked(project, branchName);
-        ProjectDirectory projectStructure = null;
+        ProjectStructure projectStructure = null;
         boolean structureChanged = false;
         for(Long id : tracked.keySet()){
             ChangeHolder changeHolder = tracked.get(id);

@@ -1,17 +1,15 @@
 package com.example.CodeEditor.controllers;
 
-import com.example.CodeEditor.enums.Role;
 import com.example.CodeEditor.model.component.files.Project;
-import com.example.CodeEditor.model.users.client.Client;
+import com.example.CodeEditor.model.clients.Client;
 import com.example.CodeEditor.repository.ClientRepository;
-import com.example.CodeEditor.services.EditorService;
+import com.example.CodeEditor.services.ClientService;
 import com.example.CodeEditor.services.ProjectService;
 import com.example.CodeEditor.services.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -25,19 +23,19 @@ public class AdminController {
     private ProjectService projectService;
 
     @Autowired
-    private EditorService editorService;
+    private ClientService clientService;
 
     @Autowired
     private StorageService storageService;
 
     @GetMapping("/get-editors")
     public List<Client> getAllEditors(){
-        return editorService.getAllEditors();
+        return clientService.getAllEditors();
     }
 
     @DeleteMapping("/remove-editor/{editorId}")
     public void removeEditor(@PathVariable Long editorId){
-        editorService.deleteEditor(editorId);
+        clientService.deleteEditor(editorId);
     }
 
     @GetMapping("/get-editor-projects/{editorId}")

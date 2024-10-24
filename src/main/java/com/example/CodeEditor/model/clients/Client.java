@@ -1,12 +1,12 @@
-package com.example.CodeEditor.model.users.client;
+package com.example.CodeEditor.model.clients;
 
 import com.example.CodeEditor.enums.Role;
+import com.example.CodeEditor.model.component.Token;
 import com.example.CodeEditor.model.component.files.Project;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;

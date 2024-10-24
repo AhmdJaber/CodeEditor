@@ -1,4 +1,4 @@
-package com.example.CodeEditor.controllers.auth;
+package com.example.CodeEditor.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthenticationRequest {
+public class AuthenticationDTO {
     private String email;
     private String password;
 }
