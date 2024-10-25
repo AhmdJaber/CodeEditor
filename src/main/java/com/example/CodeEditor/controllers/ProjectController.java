@@ -1,11 +1,7 @@
 package com.example.CodeEditor.controllers;
 
-import com.example.CodeEditor.model.clients.Client;
 import com.example.CodeEditor.model.component.files.Project;
-import com.example.CodeEditor.services.ClientService;
-import com.example.CodeEditor.services.JwtService;
 import com.example.CodeEditor.services.ProjectService;
-import com.example.CodeEditor.services.storage.ProjectStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,65 +18,32 @@ public class ProjectController {
     @Autowired
     private ProjectService projectService;
 
-    @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private ClientService clientService;
-
-    @Autowired
-    private ProjectStorageService projectStorageService;
-
     @GetMapping("/client_projects")
     public List<Project> getProjects(@RequestHeader("Authorization") String reqToken) {
-        String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.extractUsername(token);
-        Client client = clientService.getClientByEmail(email);
-        return projectService.getClientProjects(client);
+        return projectService.getClientProjects(reqToken);
     }
 
     @GetMapping("/shared_projects_edit")
     public List<Project> getSharedEditProjects(@RequestHeader("Authorization") String reqToken) {
-        String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.extractUsername(token);
-        Client client = clientService.getClientByEmail(email);
-        return projectService.getSharedEditProjects(client);
+        return projectService.getSharedEditProjects(reqToken);
     }
 
     @GetMapping("/shared_projects_view")
     public List<Project> getSharedViewProjects(@RequestHeader("Authorization") String reqToken) {
-        String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.extractUsername(token);
-        Client client = clientService.getClientByEmail(email);
-        return projectService.getShareViewProjects(client);
+        return projectService.getShareViewProjects(reqToken);
     }
 
     @PostMapping("/create")
     public Project createProject(@RequestBody Map<String, String> data, @RequestHeader("Authorization") String reqToken) {
-        String projectName = data.get("projectName");
-        String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.extractUsername(token);
-        Client client = clientService.getClientByEmail(email);
-        Project project = Project.builder()
-                .name(projectName)
-                .client(client)
-                .build();
-        Project createdProject = projectService.create(project);
-        projectStorageService.createProject(client, createdProject);
-        return createdProject;
+        return projectService.create(data, reqToken);
     }
 
     @DeleteMapping("/delete/{projectId}/{ownerId}")
-    public ResponseEntity<String> deleteProject(@RequestHeader("Authorization") String reqToken, @PathVariable long projectId, @PathVariable long ownerId) {
-        String token = reqToken.replace("Bearer ", "");
-        String email = jwtService.extractUsername(token);
-        Client client = clientService.getClientByEmail(email);
-        if (client.getId() != ownerId) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You aren't allowed to delete this project");
+    public ResponseEntity<String> deleteProject(@RequestHeader("Authorization") String reqToken, @PathVariable Long projectId, @PathVariable long ownerId) {
+        String response = projectService.deleteProject(projectId, ownerId, reqToken);
+        if (response.equals("Project deleted successfully")){
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         }
-
-        projectStorageService.deleteProject(client, projectId);
-        projectService.deleteProjectById(projectId);
-        return ResponseEntity.ok("Project deleted successfully");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(reqToken);
     }
 }

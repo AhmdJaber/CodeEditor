@@ -1,10 +1,5 @@
 package com.example.CodeEditor.controllers;
 
-import com.example.CodeEditor.model.clients.Client;
-import com.example.CodeEditor.model.component.files.Project;
-import com.example.CodeEditor.services.ClientService;
-import com.example.CodeEditor.services.JwtService;
-import com.example.CodeEditor.services.ProjectService;
 import com.example.CodeEditor.services.VCSService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/vcs")
@@ -22,17 +16,9 @@ public class VCSController {
     @Autowired
     private VCSService vcsService;
 
-    @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private ClientService clientService;
-
-    @Autowired
-    private ProjectService projectService;
 
     @GetMapping("/init/{projectId}")
-    public ResponseEntity<String> init(@PathVariable Long projectId) throws Exception {
+    public ResponseEntity<String> init(@PathVariable Long projectId) {
         vcsService.initVCS(projectId);
         return ResponseEntity.ok(".vcs directory initialized");
     }
@@ -57,12 +43,8 @@ public class VCSController {
     }
 
     @PostMapping("/commit/{projectId}")
-    public ResponseEntity<?> commit(@PathVariable Long projectId, @RequestBody String message, @RequestHeader("Authorization") String reqToken) throws Exception {
-        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
-        Client client = clientService.getClientByEmail(senderEmail);
-        message = message.substring(1, message.length() - 1);
-        List<String> trackedChanges = vcsService.commit(projectId, client, message);
-        return ResponseEntity.ok(trackedChanges);
+    public ResponseEntity<?> commit(@PathVariable Long projectId, @RequestBody String message, @RequestHeader("Authorization") String reqToken)  {
+        return vcsService.commit(projectId, message, reqToken);
     }
 
     @GetMapping("/log/{projectId}")
@@ -84,29 +66,12 @@ public class VCSController {
 
     @PostMapping("/fork/{projectId}")
     public ResponseEntity<?> fork(@PathVariable Long projectId, @RequestHeader("Authorization") String reqToken) {
-        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
-        Client client = clientService.getClientByEmail(senderEmail);
-        Project project = projectService.getProjectById(projectId);
-        if (Objects.equals(project.getClient(), client)){
-            return ResponseEntity.badRequest().body("Cannot fork projects you own");
-        }
-        vcsService.fork(client, projectId);
-        return ResponseEntity.ok("Forked successfully");
+        return vcsService.fork(projectId, reqToken);
     }
 
     @PostMapping("/fork")
     public ResponseEntity<?> fork(@RequestBody Map<String, String> body, @RequestHeader("Authorization") String reqToken) {
-        String ownerEmail = body.get("owner");
-        String projectName = body.get("project");
-        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
-        Client client = clientService.getClientByEmail(senderEmail);
-        Client owner = clientService.getClientByEmail(ownerEmail);
-        Project project = projectService.getProjectByNameAndOwner(projectName, owner);
-        if (Objects.equals(project.getClient(), client)){
-            return ResponseEntity.badRequest().body("Cannot fork projects you own");
-        }
-        vcsService.fork(client, project);
-        return ResponseEntity.ok("Forked successfully");
+        return vcsService.fork(body, reqToken);
     }
 
     @GetMapping("/branches/{projectId}")

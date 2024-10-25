@@ -8,13 +8,11 @@ import com.example.CodeEditor.services.storage.FileStorageService;
 import com.example.CodeEditor.services.storage.VCSStorageService;
 import com.example.CodeEditor.vcs.ChangeHolder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class VCSService {
@@ -29,6 +27,15 @@ public class VCSService {
 
     @Autowired
     private FileStorageService fileStorageService;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private ClientService clientService;
+
+    @Autowired
+    private ProjectService projectService;
 
     public void initVCS(Long projectId) {
         Project project = projectRepository.findById(projectId).orElseThrow();
@@ -103,6 +110,14 @@ public class VCSService {
         return changesNames;
     }
 
+    public ResponseEntity<List<String>> commit(Long projectId, String message, String reqToken) {
+        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
+        Client client = clientService.getClientByEmail(senderEmail);
+        message = message.substring(1, message.length() - 1);
+        List<String> trackedChanges = commit(projectId, client, message);
+        return ResponseEntity.ok(trackedChanges);
+    }
+
     public void revert(Long projectId, String commitId) {
         Project project = projectRepository.findById(projectId).orElseThrow();
         String branchName = storageService.getCurrentBranch(project);
@@ -119,8 +134,33 @@ public class VCSService {
         storageService.fork(project, client);
     }
 
+    public ResponseEntity<String> fork(Long projectId, String reqToken) {
+        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
+        Client client = clientService.getClientByEmail(senderEmail);
+        Project project = projectService.getProjectById(projectId);
+        if (Objects.equals(project.getClient(), client)){
+            return ResponseEntity.badRequest().body("Cannot fork projects you own");
+        }
+        fork(client, projectId);
+        return ResponseEntity.ok("Forked successfully");
+    }
+
     public void fork(Client client, Project project) {
         storageService.fork(project, client);
+    }
+
+    public ResponseEntity<String> fork(Map<String, String> body, String reqToken) {
+        String ownerEmail = body.get("owner");
+        String projectName = body.get("project");
+        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
+        Client client = clientService.getClientByEmail(senderEmail);
+        Client owner = clientService.getClientByEmail(ownerEmail);
+        Project project = projectService.getProjectByNameAndOwner(projectName, owner);
+        if (Objects.equals(project.getClient(), client)){
+            return ResponseEntity.badRequest().body("Cannot fork projects you own");
+        }
+        fork(client, project);
+        return ResponseEntity.ok("Forked successfully");
     }
 
     public List<String> allBranches(Long projectId) {

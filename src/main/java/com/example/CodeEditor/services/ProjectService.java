@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class ProjectService {
@@ -18,12 +20,40 @@ public class ProjectService {
     @Autowired
     private ProjectStorageService projectStorageService;
 
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private ClientService clientService;
+
+
     public Project create(Project project) {
         return projectRepository.save(project);
     }
 
+    public Project create(Map<String, String> data, String reqToken) {
+        String projectName = data.get("projectName");
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.extractUsername(token);
+        Client client = clientService.getClientByEmail(email);
+        Project project = Project.builder()
+                .name(projectName)
+                .client(client)
+                .build();
+        Project createdProject = create(project);
+        projectStorageService.createProject(client, createdProject);
+        return createdProject;
+    }
+
     public List<Project> getClientProjects(Client client){
         return projectRepository.findByClient(client);
+    }
+
+    public List<Project> getClientProjects(String reqToken){
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.extractUsername(token);
+        Client client = clientService.getClientByEmail(email);
+        return getClientProjects(client);
     }
 
     public Project getProjectById(Long id) {
@@ -35,9 +65,23 @@ public class ProjectService {
         return getSharedProjects(projects);
     }
 
+    public List<Project> getSharedEditProjects(String reqToken) {
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.extractUsername(token);
+        Client client = clientService.getClientByEmail(email);
+        return getSharedEditProjects(client);
+    }
+
     public List<Project> getShareViewProjects(Client client) {
         List<String> projects = projectStorageService.getSharedViewProjects(client);
         return getSharedProjects(projects);
+    }
+
+    public List<Project> getShareViewProjects(String reqToken) {
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.extractUsername(token);
+        Client client = clientService.getClientByEmail(email);
+        return getShareViewProjects(client);
     }
 
     private List<Project> getSharedProjects(List<String> projects) {
@@ -69,5 +113,26 @@ public class ProjectService {
             throw new IllegalArgumentException("Project does not exist");
         }
         projectRepository.deleteById(id);
+    }
+
+    public List<Project> findByClient(Client client) {
+        return projectRepository.findByClient(client);
+    }
+
+    public void deleteProject(Project project) {
+        projectRepository.delete(project);
+    }
+
+    public String deleteProject(Long projectId, Long ownerId, String reqToken) {
+        String token = reqToken.replace("Bearer ", "");
+        String email = jwtService.extractUsername(token);
+        Client client = clientService.getClientByEmail(email);
+        if (!Objects.equals(client.getId(), ownerId)) {
+            return "You aren't allowed to delete this project";
+        }
+
+        projectStorageService.deleteProject(client, projectId);
+        deleteProjectById(projectId);
+        return "Project deleted successfully";
     }
 }

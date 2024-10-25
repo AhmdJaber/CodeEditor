@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Service
@@ -35,7 +36,20 @@ public class SnippetService {
     @Autowired
     private ProjectStorageService projectStorageService;
 
-    public Long createSnippet(Client editor, Snippet snippet, Long projectId) throws IOException {
+    @Autowired
+    private ClientService clientService;
+
+    @Autowired
+    private ProjectService projectService;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private CodeExecutionService codeExecutionService;
+
+    public Long createSnippet(Long editorId, Snippet snippet, Long projectId) throws IOException {
+        Client editor = clientService.getClientById(editorId);
         Long snippetId = fileItemService.createFile(new FileItem(snippet.getName(), snippet.getParentId())).getId();
         snippet.setId(snippetId);
         ProjectStructure projectStructure = projectStorageService.loadProjectStructure(editor, projectId);
@@ -52,7 +66,8 @@ public class SnippetService {
         return snippetId;
     }
 
-    public void removeSnippet(Client editor, Snippet snippet, Long projectId) throws IOException {
+    public void removeSnippet(Long editorId, Snippet snippet, Long projectId) throws IOException {
+        Client editor = clientService.getClientById(editorId);
         ProjectStructure projectStructure = projectStorageService.loadProjectStructure(editor, projectId);
         projectStructure.getTree().get(snippet.getParentId()).getFileItems().remove(snippet);
         projectStorageService.saveProjectStructure(editor, projectStructure, projectId);
@@ -67,7 +82,8 @@ public class SnippetService {
         }
     }
 
-    public void updateSnippet(Client editor, Long id, String name, String updatedContent, Long projectId) {
+    public void updateSnippet(Long editorId, Long id, String name, String updatedContent, Long projectId) {
+        Client editor = clientService.getClientById(editorId);
         snippetStorageService.updateSnippet(editor, id, name, updatedContent, projectId);
         System.out.println("Snippet " + id + "_" + name + " has been updated");
         Project project = projectRepository.findById(projectId).orElseThrow(
@@ -80,7 +96,8 @@ public class SnippetService {
         }
     }
 
-    public String loadSnippet(Client editor, Long id, String name, Long projectId) throws Exception {
+    public String loadSnippet(Long editorId, Long id, String name, Long projectId) throws Exception {
+        Client editor = clientService.getClientById(editorId);
         return snippetStorageService.loadSnippet(editor, id, name, projectId);
     }
 
@@ -88,7 +105,26 @@ public class SnippetService {
         snippetStorageService.comment(editor, project, snippetId, comment, start, end);
     }
 
-    public List<Comment> getSnippetComments(Project project, Long snippetId) {
+    public void comment(Long projectId, Long snippetId, Map<String, String> body, String reqToken) {
+        String senderEmail = jwtService.extractUsername(reqToken.replace("Bearer ", ""));
+        Client editor = clientService.getClientByEmail(senderEmail);
+        Project project = projectService.getProjectById(projectId);
+        String comment = body.get("comment");
+        Integer startLine = Integer.parseInt(body.get("start"));
+        Integer endLine = Integer.parseInt(body.get("end"));
+        comment(editor, project, snippetId, comment, startLine, endLine);
+    }
+
+    public List<Comment> getSnippetComments(Long projectId, Long snippetId) {
+        Project project = projectService.getProjectById(projectId);
         return snippetStorageService.getSnippetComments(project, snippetId);
+    }
+
+    public String executeCode(Map<String, String> body) {
+        String code = body.get("code");
+        String language = body.get("language");
+
+        System.out.println(language);
+        return codeExecutionService.executeCode(code, language);
     }
 }

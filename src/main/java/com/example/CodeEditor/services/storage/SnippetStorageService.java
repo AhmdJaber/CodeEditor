@@ -46,20 +46,11 @@ public class SnippetStorageService {
         Path snippetPath = Paths.get(snippetsPath + "\\" + fileName);
         Files.createFile(snippetPath);
         String extension = snippet.getName().substring(snippet.getName().lastIndexOf(".") + 1);
-        String content = getCodeContent(extension);
+        String content = getCodeTemplate(extension);
 
         Files.write(snippetPath, content.getBytes());
         String commentPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\comments\\" + snippet.getId();
         fileUtil.writeObjectOnFile(new ArrayList<>(), commentPath);
-    }
-
-    private String getCodeContent(String extension) { // TODO: move it to utils?
-        return switch (extension) {
-            case "cpp" -> templates.cppTemplate;
-            case "java" -> templates.javaTemplate;
-            case "py" -> templates.pyTemplate;
-            default -> "Nothing\n\n Extension " + extension + " not allowed";
-        };
     }
 
     public void deleteSnippet(Client client, Snippet snippet, Long projectId) throws IOException {// TODO: Move to SnippetStorageService
@@ -121,5 +112,14 @@ public class SnippetStorageService {
     public List<Comment> getSnippetComments(Project project, Long snippetId) {
         String commentPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\comments\\" + snippetId;
         return (List<Comment>) fileUtil.readObjectFromFile(commentPath, new ArrayList<>());
+    }
+
+    private String getCodeTemplate(String extension) {
+        return switch (extension) {
+            case "cpp" -> templates.cppTemplate;
+            case "java" -> templates.javaTemplate;
+            case "py" -> templates.pyTemplate;
+            default -> "Nothing\n\n Extension " + extension + " not allowed";
+        };
     }
 }

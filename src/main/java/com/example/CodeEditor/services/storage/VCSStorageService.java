@@ -134,7 +134,7 @@ public class VCSStorageService {
 
     private void writeChanges(Project project, String branchName, Map<Long, ChangeHolder> changes){
         String changesPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\changes";
-        fileUtil.writeObjectOnFile(changes, changesPath); // TODO: does this line overwrites or appends?
+        fileUtil.writeObjectOnFile(changes, changesPath);
     }
 
     public void makeChange(Project project, String branchName, char fileType, Change changeType, FileItem fileItem) {
@@ -209,7 +209,7 @@ public class VCSStorageService {
         return changes;
     }
 
-    public Map<Long, ChangeHolder> commitTracked(Project project, String branchName, Client client, String message, String prevCommitId) { //TODO: remove the folders from the changes and tracked
+    public Map<Long, ChangeHolder> commitTracked(Project project, String branchName, Client client, String message, String prevCommitId) {
         String commitId = client.getId().toString() + "%" + Instant.now().getEpochSecond() + "%" + message.hashCode();
         String commitsPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\commits";
         Map<Long, ChangeHolder> tracked = readTracked(project, branchName);
@@ -230,11 +230,11 @@ public class VCSStorageService {
         for(File snippet : allSnippets){
             String name = snippet.getName();
             Long id = Long.parseLong(name.split("_")[0]);
-            if (tracked.containsKey(id)){ //TODO: when updating the newly created file, does it takes it's content? yes, make sure
+            if (tracked.containsKey(id)){
                 String content = tracked.get(id).getContent();
                 filesContent.put(id, content);
             } else {
-                filesContent.put(id, null); // TODO: means we will take it from the previous commit (reference)
+                filesContent.put(id, null);
             }
         }
 

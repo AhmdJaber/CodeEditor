@@ -30,7 +30,11 @@ public class FolderService {
     @Autowired
     private ProjectStorageService projectStorageService;
 
-    public Long createFolder(Client editor, Folder folder, Long projectId) {
+    @Autowired
+    private ClientService clientService;
+
+    public Long createFolder(Long editorId, Folder folder, Long projectId) {
+        Client editor = clientService.getClientById(editorId);
         Long folderId = fileItemService.createFile(new FileItem(folder.getName(), folder.getParentId())).getId();
         folder.setId(folderId);
         ProjectStructure projectStructure = projectStorageService.loadProjectStructure(editor, projectId);
@@ -47,7 +51,8 @@ public class FolderService {
         return folderId;
     }
 
-    public void removeFolder(Client editor, Folder folder, Long projectId) {
+    public void removeFolder(Long editorId, Folder folder, Long projectId) {
+        Client editor = clientService.getClientById(editorId);
         ProjectStructure projectStructure = projectStorageService.loadProjectStructure(editor, projectId);
         System.out.println(projectStructure);
         projectStructure.getTree().get(folder.getParentId()).getFileItems().remove(folder);

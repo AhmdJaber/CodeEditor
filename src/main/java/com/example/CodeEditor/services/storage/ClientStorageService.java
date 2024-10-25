@@ -16,7 +16,7 @@ public class ClientStorageService {
     @Autowired
     private FilesystemPaths filesystemPaths;
 
-    public void createClient(Client client){ // TODO: change it to general class like "User" or something
+    public void createClient(Client client){
         String userPath = filesystemPaths.storageServicePath + "\\" + client.getId();
         try{
             fileUtil.createFolder(userPath);
