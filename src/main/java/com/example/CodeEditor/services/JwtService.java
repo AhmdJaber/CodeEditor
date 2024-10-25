@@ -1,4 +1,4 @@
-package com.example.CodeEditor.security.jwt;
+package com.example.CodeEditor.services;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

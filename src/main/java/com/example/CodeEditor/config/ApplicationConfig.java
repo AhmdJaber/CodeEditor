@@ -1,4 +1,4 @@
-package com.example.CodeEditor.security.config;
+package com.example.CodeEditor.config;
 
 import com.example.CodeEditor.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;

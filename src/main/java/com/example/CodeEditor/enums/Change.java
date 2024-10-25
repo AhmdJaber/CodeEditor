@@ -1,4 +1,4 @@
-package com.example.CodeEditor.vcs;
+package com.example.CodeEditor.enums;
 
 public enum Change {
     CREATE("CREATE"),

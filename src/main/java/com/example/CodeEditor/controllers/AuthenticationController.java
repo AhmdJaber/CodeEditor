@@ -1,9 +1,9 @@
 package com.example.CodeEditor.controllers;
 
 import com.example.CodeEditor.dto.AuthenticationDTO;
-import com.example.CodeEditor.services.AuthenticationService;
 import com.example.CodeEditor.dto.RegisterDTO;
 import com.example.CodeEditor.security.AuthenticationResponse;
+import com.example.CodeEditor.services.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +19,12 @@ public class AuthenticationController {
     private AuthenticationService authenticationService;
 
     @PostMapping("/register/{role}")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterDTO request, @PathVariable String role) throws IOException {
+    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterDTO request, @PathVariable String role) {
         return ResponseEntity.ok(authenticationService.register(request, role));
     }
 
     @PostMapping("/authenticate/{role}")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationDTO request, @PathVariable String role) throws IOException {
+    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationDTO request, @PathVariable String role) {
         return ResponseEntity.ok(authenticationService.authenticate(request, role));
     }
 

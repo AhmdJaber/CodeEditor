@@ -1,12 +1,10 @@
-package com.example.CodeEditor.socket;
+package com.example.CodeEditor.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +14,7 @@ public class WebSocketController {
     private SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/editor/change")
-    public void handleCodeChange(Map<String, Object> body, SimpMessageHeaderAccessor header) throws IOException {
+    public void handleCodeChange(Map<String, Object> body)  {
         long projectId = Long.parseLong(body.get("projectId").toString());
         Map<String, String> resBody = new HashMap<>();
         resBody.put("change", body.get("change").toString());

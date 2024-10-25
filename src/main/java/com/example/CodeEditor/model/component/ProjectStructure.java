@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Data
 @ToString
-public class ProjectStructure implements Serializable { //TODO: remove this class?
+public class ProjectStructure implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
     private Map<Long, FileNode> tree;

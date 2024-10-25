@@ -15,7 +15,7 @@ public class Folder extends FileItem implements Serializable {
         super.setId(id);
         super.setName(name);
         super.setParentId(parentId);
-        super.setIsFolder(true); //TODO: remove
+        super.setIsFolder(true);
     }
 
     @Override

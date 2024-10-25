@@ -1,4 +1,4 @@
-package com.example.CodeEditor.security.config;
+package com.example.CodeEditor.services;
 
 import com.example.CodeEditor.model.component.Token;
 import com.example.CodeEditor.repository.TokenRepository;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class LogoutService implements LogoutHandler {
     @Autowired
     private final TokenRepository tokenRepository;
+
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         final String authHeader = request.getHeader("Authorization");

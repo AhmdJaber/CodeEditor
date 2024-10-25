@@ -1,6 +1,7 @@
-package com.example.CodeEditor.security.jwt;
+package com.example.CodeEditor.security;
 
 import com.example.CodeEditor.repository.TokenRepository;
+import com.example.CodeEditor.services.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,11 +1,11 @@
 package com.example.CodeEditor.controllers;
 
-import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.clients.Client;
-import com.example.CodeEditor.repository.ClientRepository;
-import com.example.CodeEditor.security.jwt.JwtService;
+import com.example.CodeEditor.model.component.files.Project;
+import com.example.CodeEditor.services.ClientService;
+import com.example.CodeEditor.services.JwtService;
 import com.example.CodeEditor.services.ProjectService;
-import com.example.CodeEditor.services.StorageService;
+import com.example.CodeEditor.services.storage.ProjectStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,18 +21,21 @@ import java.util.Map;
 public class ProjectController {
     @Autowired
     private ProjectService projectService;
-    @Autowired
-    private ClientRepository clientRepository;
-    @Autowired
-    private StorageService storageService;
+
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private ClientService clientService;
+
+    @Autowired
+    private ProjectStorageService projectStorageService;
 
     @GetMapping("/client_projects")
     public List<Project> getProjects(@RequestHeader("Authorization") String reqToken) {
         String token = reqToken.replace("Bearer ", "");
         String email = jwtService.extractUsername(token);
-        Client client = clientRepository.findByEmail(email).orElseThrow();
+        Client client = clientService.getClientByEmail(email);
         return projectService.getClientProjects(client);
     }
 
@@ -40,7 +43,7 @@ public class ProjectController {
     public List<Project> getSharedEditProjects(@RequestHeader("Authorization") String reqToken) {
         String token = reqToken.replace("Bearer ", "");
         String email = jwtService.extractUsername(token);
-        Client client = clientRepository.findByEmail(email).orElseThrow();
+        Client client = clientService.getClientByEmail(email);
         return projectService.getSharedEditProjects(client);
     }
 
@@ -48,7 +51,7 @@ public class ProjectController {
     public List<Project> getSharedViewProjects(@RequestHeader("Authorization") String reqToken) {
         String token = reqToken.replace("Bearer ", "");
         String email = jwtService.extractUsername(token);
-        Client client = clientRepository.findByEmail(email).orElseThrow();
+        Client client = clientService.getClientByEmail(email);
         return projectService.getShareViewProjects(client);
     }
 
@@ -57,13 +60,13 @@ public class ProjectController {
         String projectName = data.get("projectName");
         String token = reqToken.replace("Bearer ", "");
         String email = jwtService.extractUsername(token);
-        Client client = clientRepository.findByEmail(email).orElseThrow();
+        Client client = clientService.getClientByEmail(email);
         Project project = Project.builder()
                 .name(projectName)
                 .client(client)
                 .build();
         Project createdProject = projectService.create(project);
-        storageService.createProject(client, createdProject);
+        projectStorageService.createProject(client, createdProject);
         return createdProject;
     }
 
@@ -71,12 +74,12 @@ public class ProjectController {
     public ResponseEntity<String> deleteProject(@RequestHeader("Authorization") String reqToken, @PathVariable long projectId, @PathVariable long ownerId) {
         String token = reqToken.replace("Bearer ", "");
         String email = jwtService.extractUsername(token);
-        Client client = clientRepository.findByEmail(email).orElseThrow();
+        Client client = clientService.getClientByEmail(email);
         if (client.getId() != ownerId) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You aren't allowed to delete this project");
         }
 
-        storageService.deleteProject(client, projectId);
+        projectStorageService.deleteProject(client, projectId);
         projectService.deleteProjectById(projectId);
         return ResponseEntity.ok("Project deleted successfully");
     }

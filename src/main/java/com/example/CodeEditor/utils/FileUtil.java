@@ -109,6 +109,14 @@ public class FileUtil {
     }
 
     public void writeObjectOnFile(Object object, String filePath) {
+        Path path = Paths.get(filePath);
+        if (!Files.exists(path)) {
+            try {
+                Files.createFile(path);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Could not create the file " + filePath);
+            }
+        }
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
             oos.writeObject(object);
         } catch (IOException e) {
@@ -116,7 +124,10 @@ public class FileUtil {
         }
     }
 
-    public Object readObjectFromFile(String filePath) {
+    public Object readObjectFromFile(String filePath, Object object) {
+        if (!Files.exists(Paths.get(filePath))){
+            writeObjectOnFile(object, filePath);
+        }
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             return ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
@@ -163,6 +174,17 @@ public class FileUtil {
             int length;
             while ((length = in.read(buf)) > 0) {
                 out.write(buf, 0, length);
+            }
+        }
+    }
+
+    public void createFolderIfNotExists(String path){
+        File file = new File(path);
+        if (!file.exists()){
+            if (!file.mkdir()){
+                throw new IllegalStateException("Failed to create folder " + path);
+            } else {
+                System.out.println("Folder " + path + " created!");
             }
         }
     }

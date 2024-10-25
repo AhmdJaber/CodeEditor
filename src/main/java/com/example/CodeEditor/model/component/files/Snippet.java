@@ -15,7 +15,7 @@ public class Snippet extends FileItem implements Serializable {
         super.setId(id);
         super.setName(name);
         super.setParentId(parentId);
-        super.setIsFolder(false); //TODO: remove
+        super.setIsFolder(false);
     }
 
     @Override

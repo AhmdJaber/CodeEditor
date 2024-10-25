@@ -13,7 +13,7 @@ public class FileNode implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private String name;       //TODO: optimize this, take another look at the tree (map<Long, FileNode>)!
+    private String name;
     private List<FileItem> fileItems;
     private Long parentId;
 }

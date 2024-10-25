@@ -1,8 +1,8 @@
-package com.example.CodeEditor.security.config;
+package com.example.CodeEditor.security;
 
 import com.example.CodeEditor.model.clients.Client;
 import com.example.CodeEditor.repository.ClientRepository;
-import com.example.CodeEditor.security.jwt.JwtService;
+import com.example.CodeEditor.services.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

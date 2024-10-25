@@ -1,6 +1,8 @@
-package com.example.CodeEditor.security.config;
+package com.example.CodeEditor.config;
 
-import com.example.CodeEditor.security.jwt.JwtAuthenticationFilter;
+import com.example.CodeEditor.security.OAuth2LoginSuccessHandler;
+import com.example.CodeEditor.security.JwtAuthenticationFilter;
+import com.example.CodeEditor.services.LogoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,16 +16,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
-import static com.example.CodeEditor.enums.Permission.*;
-import static com.example.CodeEditor.enums.Role.ADMIN;
-import static com.example.CodeEditor.enums.Role.EDITOR;
-import static org.springframework.http.HttpMethod.*;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableMethodSecurity
-public class SecurityConfiguration {
+public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final LogoutService logoutService;

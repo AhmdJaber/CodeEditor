@@ -8,7 +8,6 @@ import com.example.CodeEditor.model.component.Token;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.TokenRepository;
 import com.example.CodeEditor.security.AuthenticationResponse;
-import com.example.CodeEditor.security.jwt.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,7 +43,7 @@ public class AuthenticationService {
     @Autowired
     private TokenRepository tokenRepository;
 
-    public AuthenticationResponse register(RegisterDTO request, String role) throws IOException { // TODO: move it to the ClientService
+    public AuthenticationResponse register(RegisterDTO request, String role) {
         Client client = Client
                 .builder()
                 .name(request.getName())

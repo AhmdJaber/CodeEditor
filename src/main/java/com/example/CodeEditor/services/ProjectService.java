@@ -1,8 +1,9 @@
 package com.example.CodeEditor.services;
 
-import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.model.clients.Client;
+import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.repository.ProjectRepository;
+import com.example.CodeEditor.services.storage.ProjectStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,7 @@ public class ProjectService {
     private ProjectRepository projectRepository;
 
     @Autowired
-    private StorageService storageService;
+    private ProjectStorageService projectStorageService;
 
     public Project create(Project project) {
         return projectRepository.save(project);
@@ -30,12 +31,12 @@ public class ProjectService {
     }
 
     public List<Project> getSharedEditProjects(Client client) {
-        List<String> projects = storageService.getSharedEditProjects(client);
+        List<String> projects = projectStorageService.getSharedEditProjects(client);
         return getSharedProjects(projects);
     }
 
     public List<Project> getShareViewProjects(Client client) {
-        List<String> projects = storageService.getSharedViewProjects(client);
+        List<String> projects = projectStorageService.getSharedViewProjects(client);
         return getSharedProjects(projects);
     }
 

@@ -1,5 +1,6 @@
 package com.example.CodeEditor.vcs;
 
+import com.example.CodeEditor.enums.Change;
 import lombok.*;
 
 import java.io.Serializable;
