@@ -11,6 +11,7 @@ import com.example.CodeEditor.utils.EncryptionUtil;
 import com.example.CodeEditor.utils.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,6 +38,7 @@ public class SnippetStorageService {
     @Autowired
     private EncryptionUtil encryptionUtil;
 
+    @Transactional
     public void createSnippet(Client client, Snippet snippet, Long projectId) throws IOException {
         Project project = projectRepository.findById(projectId).orElseThrow();
         String snippetsPath = paths.storageServicePath + "\\" + client.getId() + "\\projects\\" + project.getId() + "\\snippets";
@@ -53,6 +55,7 @@ public class SnippetStorageService {
         fileUtil.writeObjectOnFile(new ArrayList<>(), commentPath);
     }
 
+    @Transactional
     public void deleteSnippet(Client client, Snippet snippet, Long projectId) throws IOException {// TODO: Move to SnippetStorageService
         String snippetsPath = paths.storageServicePath + "\\" + client.getId() + "\\projects\\" + projectId + "\\snippets";
         fileUtil.createFolderIfNotExists(snippetsPath);
@@ -80,6 +83,7 @@ public class SnippetStorageService {
         }
     }
 
+    @Transactional
     public synchronized void updateSnippet(Client client, Long id, String name, String updatedContent, Long projectId) {
         String snippetsPath = paths.storageServicePath + "\\" + client.getId() + "\\projects\\" + projectId + "\\snippets";
         fileUtil.createFolderIfNotExists(snippetsPath);
@@ -93,6 +97,7 @@ public class SnippetStorageService {
         }
     }
 
+    @Transactional
     public void comment(Client editor, Project project, Long snippetId, String comment, Integer start, Integer end) {
         String commentPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\comments\\" + snippetId;
         List<Comment> comments = (List<Comment>) fileUtil.readObjectFromFile(commentPath, new ArrayList<>());

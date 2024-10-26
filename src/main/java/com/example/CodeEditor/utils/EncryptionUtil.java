@@ -8,6 +8,10 @@ import java.util.Base64;
 
 @Service
 public class EncryptionUtil {
+    private EncryptionUtil(){
+        throw new IllegalStateException("Utility class cannot be instantiated");
+    }
+
     private final String secretKey = "kG?Zm%xl~Of>u%R^";
     public String encrypt(String strToEncrypt) throws Exception {
         Cipher cipher = Cipher.getInstance("AES");

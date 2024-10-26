@@ -3,16 +3,17 @@ package com.example.CodeEditor.services.storage;
 import com.example.CodeEditor.constants.FilesystemPaths;
 import com.example.CodeEditor.enums.Change;
 import com.example.CodeEditor.model.clients.Client;
-import com.example.CodeEditor.model.component.ProjectStructure;
+import com.example.CodeEditor.model.component.files.ProjectStructure;
 import com.example.CodeEditor.model.component.files.FileItem;
 import com.example.CodeEditor.model.component.files.FileNode;
 import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.repository.FileItemRepository;
 import com.example.CodeEditor.repository.ProjectRepository;
 import com.example.CodeEditor.utils.FileUtil;
-import com.example.CodeEditor.vcs.ChangeHolder;
+import com.example.CodeEditor.model.component.ChangeHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -40,7 +41,8 @@ public class VCSStorageService {
     @Autowired
     private FilesystemPaths paths;
 
-    public void init(Project project) {
+    @Transactional
+    public void initVCS(Project project) {
         long ownerId = project.getClient().getId();
         String vcsPath = paths.storageServicePath + "\\" + ownerId + "\\projects\\" + project.getId() + "\\.vcs";
         if (!fileUtil.fileExists(vcsPath)){
@@ -59,6 +61,7 @@ public class VCSStorageService {
         return fileUtil.fileExists(vcsPath);
     }
 
+    @Transactional
     private void createInitialCommit(Project project) {
         String commitsPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\main\\commits";
         String commitId = project.getClient().getId().toString() + "%" + Instant.now().getEpochSecond() + "%" + "initial commit".hashCode();
@@ -85,6 +88,7 @@ public class VCSStorageService {
         writeOnLog(project, project.getClient(), commitId, "main", "Initial commit");
     }
 
+    @Transactional
     public void createBranch(Project project, String branchName) {
         String vcsPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs";
         fileUtil.createFolderIfNotExists(vcsPath + "\\branches");
@@ -100,6 +104,7 @@ public class VCSStorageService {
         fileUtil.createFile(vcsPath + "\\branches\\" + branchName + "\\currentCommit", "");
     }
 
+    @Transactional
     public void createBranch(Project project, String branchName, String prevBranchName) {
         String vcsPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs";
         String prevBranchPath = vcsPath + "\\branches\\" + prevBranchName;
@@ -107,7 +112,8 @@ public class VCSStorageService {
         fileUtil.copyDirectory(prevBranchPath, newBranchPath);
     }
 
-    public void delete(Project project) {
+    @Transactional
+    public void deleteVCS(Project project) {
         long ownerId = project.getClient().getId();
         String vcsPath = paths.storageServicePath + "\\" + ownerId + "\\projects\\" + project.getId() + "\\.vcs";
         fileUtil.deleteFolder(vcsPath);
@@ -132,11 +138,13 @@ public class VCSStorageService {
         return (Map<Long, ChangeHolder>) fileUtil.readObjectFromFile(changesPath, new HashMap<>());
     }
 
+    @Transactional
     private void writeChanges(Project project, String branchName, Map<Long, ChangeHolder> changes){
         String changesPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\changes";
         fileUtil.writeObjectOnFile(changes, changesPath);
     }
 
+    @Transactional
     public void makeChange(Project project, String branchName, char fileType, Change changeType, FileItem fileItem) {
         if (!checkVCSProject(project)){
             System.out.println("Not a .vcs project");
@@ -177,11 +185,13 @@ public class VCSStorageService {
         return (Map<Long, ChangeHolder>) fileUtil.readObjectFromFile(changesPath, new HashMap<>());
     }
 
+    @Transactional
     private void writeTracked(Project project, String branchName, Map<Long, ChangeHolder> tracked){
         String changesPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\tracked";
         fileUtil.writeObjectOnFile(tracked, changesPath);
     }
 
+    @Transactional
     public Map<Long, ChangeHolder> trackChanges(Project project, String branchName, List<Long> filesIds) {
         Map<Long, ChangeHolder> tracked = readTracked(project, branchName);
         Map<Long, ChangeHolder> changes = readChanges(project, branchName);
@@ -198,6 +208,7 @@ public class VCSStorageService {
         return changes;
     }
 
+    @Transactional
     public Map<Long, ChangeHolder> trackAllChanges(Project project, String branchName) {
         Map<Long, ChangeHolder> tracked = readTracked(project, branchName);
         Map<Long, ChangeHolder> changes = readChanges(project, branchName);
@@ -209,6 +220,7 @@ public class VCSStorageService {
         return changes;
     }
 
+    @Transactional
     public Map<Long, ChangeHolder> commitTracked(Project project, String branchName, Client client, String message, String prevCommitId) {
         String commitId = client.getId().toString() + "%" + Instant.now().getEpochSecond() + "%" + message.hashCode();
         String commitsPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\commits";
@@ -280,11 +292,13 @@ public class VCSStorageService {
         fileUtil.writeOnFile(Paths.get(currentPath), commitId);
     }
 
+    @Transactional
     public List<String> log(Project project, String branchName){
         String logPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\log";
         return (List<String>) fileUtil.readObjectFromFile(logPath, new HashMap<>());
     }
 
+    @Transactional
     public void writeOnLog(Project project, Client client, String commitId, String branchName, String message){
         String newLog = "Commit Id:\t" + commitId + "\nAuthor   :\t" + client.getName() + " " + client.getEmail() + "\nDate     :\t\t" + Instant.now() + "\n\tMessage: " + message;
         String logPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId() + "\\.vcs\\branches\\" + branchName + "\\log";
@@ -293,6 +307,7 @@ public class VCSStorageService {
         fileUtil.writeObjectOnFile(log, logPath);
     }
 
+    @Transactional
     public void revert(Project project, String branchName, String commitId)  {
         String projectPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId();
         fileUtil.deleteFolder(projectPath + "\\snippets");
@@ -318,6 +333,7 @@ public class VCSStorageService {
         writeChanges(project, branchName, new HashMap<>());
     }
 
+    @Transactional
     public void fork(Project project, Client client) {
         String projectPath = paths.storageServicePath + "\\" + project.getClient().getId() + "\\projects\\" + project.getId();
         Project buildProject = Project.builder()
@@ -334,6 +350,7 @@ public class VCSStorageService {
         fileUtil.copyDirectory(projectPath + "\\snippets", clientProjectsPath + "\\snippets");
     }
 
+    @Transactional
     public void deleteBranch(Project project, String branchName) {
         if (Objects.equals(branchName, "main")){
             throw new IllegalStateException("Couldn't delete the defualt branch 'main'");

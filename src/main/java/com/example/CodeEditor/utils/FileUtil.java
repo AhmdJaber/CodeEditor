@@ -13,6 +13,10 @@ public class FileUtil {
     @Autowired
     private EncryptionUtil encryptionUtil;
 
+    private FileUtil(){
+        throw new IllegalStateException("Utility class cannot be instantiated");
+    }
+
     public void createFolder(String folderPath){
         System.out.println(folderPath);
         File folder = new File(folderPath);

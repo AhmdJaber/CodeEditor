@@ -5,6 +5,7 @@ import com.example.CodeEditor.model.clients.Client;
 import com.example.CodeEditor.utils.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 
@@ -16,6 +17,7 @@ public class ClientStorageService {
     @Autowired
     private FilesystemPaths filesystemPaths;
 
+    @Transactional
     public void createClient(Client client){
         String userPath = filesystemPaths.storageServicePath + "\\" + client.getId();
         try{
@@ -29,6 +31,7 @@ public class ClientStorageService {
         }
     }
 
+    @Transactional
     public void deleteClient(Long clientId){
         String userPath = filesystemPaths.storageServicePath + "\\" + clientId;
         fileUtil.deleteFolder(userPath);

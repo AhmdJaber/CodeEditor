@@ -2,7 +2,7 @@ package com.example.CodeEditor.services.storage;
 
 import com.example.CodeEditor.constants.FilesystemPaths;
 import com.example.CodeEditor.model.clients.Client;
-import com.example.CodeEditor.model.component.ProjectStructure;
+import com.example.CodeEditor.model.component.files.ProjectStructure;
 import com.example.CodeEditor.model.component.files.Project;
 import com.example.CodeEditor.repository.ClientRepository;
 import com.example.CodeEditor.repository.ProjectRepository;
@@ -10,6 +10,7 @@ import com.example.CodeEditor.utils.EncryptionUtil;
 import com.example.CodeEditor.utils.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,6 +42,7 @@ public class ProjectStorageService {
     @Autowired
     private ClientRepository clientRepository;
 
+    @Transactional
     public void createProject(Client client, Project project){
         String projectPath = paths.storageServicePath + "\\" + client.getId() + "\\projects\\" + project.getId();
         if (fileUtil.fileExists(projectPath)){
@@ -61,6 +63,7 @@ public class ProjectStorageService {
         }
     }
 
+    @Transactional
     public void deleteProject(Client client, long projectId){
         String projectPath = paths.storageServicePath + "\\" + client.getId() + "\\projects\\" + projectId;
         try{
@@ -75,6 +78,7 @@ public class ProjectStorageService {
         }
     }
 
+    @Transactional
     public void saveProjectStructure(Client client, ProjectStructure projectStructure, Long projectId) {
         String dirPath = paths.storageServicePath + "\\" + client.getId() + "\\projects\\" + projectId + "\\tree\\";
         fileUtil.createFolderIfNotExists(dirPath);
@@ -108,18 +112,21 @@ public class ProjectStorageService {
         }
     }
 
+    @Transactional
     public void shareProjectWithEdit(Client clientToShareWith, Long projectId, Long ownerId){
         String listOfSharedPath = paths.storageServicePath + "\\" + ownerId + "\\projects\\" + projectId + "\\shared";
         String sharedPath = paths.storageServicePath + "\\" + clientToShareWith.getId() + "\\shared\\";
         shareProject(clientToShareWith, projectId, ownerId, listOfSharedPath, sharedPath);
     }
 
+    @Transactional
     public void shareProjectWithView(Client clientToShareWith, Long projectId, Long ownerId) {
         String listOfSharedPath = paths.storageServicePath + "\\" + ownerId + "\\projects\\" + projectId + "\\shared_view";
         String sharedPath = paths.storageServicePath + "\\" + clientToShareWith.getId() + "\\shared_view\\";
         shareProject(clientToShareWith, projectId, ownerId, listOfSharedPath, sharedPath);
     }
 
+    @Transactional
     private void shareProject(Client clientToShareWith, Long projectId, Long ownerId, String listOfSharedPath, String sharedPath) {
         fileUtil.createFolderIfNotExists(sharedPath);
         try {
@@ -132,6 +139,7 @@ public class ProjectStorageService {
         }
     }
 
+    @Transactional
     public void removesharedProject(Client clientToShareWith, Long projectId){
         Project project = projectRepository.findById(projectId).orElseThrow();
         Long ownerId = project.getClient().getId();

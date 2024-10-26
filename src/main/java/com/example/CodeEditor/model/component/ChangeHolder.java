@@ -1,4 +1,4 @@
-package com.example.CodeEditor.vcs;
+package com.example.CodeEditor.model.component;
 
 import com.example.CodeEditor.enums.Change;
 import lombok.*;

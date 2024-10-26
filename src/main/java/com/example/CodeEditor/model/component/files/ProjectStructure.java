@@ -1,6 +1,5 @@
-package com.example.CodeEditor.model.component;
+package com.example.CodeEditor.model.component.files;
 
-import com.example.CodeEditor.model.component.files.FileNode;
 import lombok.Data;
 import lombok.ToString;
 

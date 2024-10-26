@@ -1,7 +1,7 @@
 package com.example.CodeEditor.controllers;
 
 import com.example.CodeEditor.model.clients.Client;
-import com.example.CodeEditor.model.component.ProjectStructure;
+import com.example.CodeEditor.model.component.files.ProjectStructure;
 import com.example.CodeEditor.services.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
