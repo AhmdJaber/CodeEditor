@@ -10,6 +10,20 @@ jobs:
     name: Build and deploy code editor
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: 1234578
+          MYSQL_DATABASE: code_editor
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -22,6 +36,12 @@ jobs:
 
       - name: Grant execute permission to mvnw
         run: chmod +x ./mvnw
+
+      - name: Wait for MySQL to be ready
+        run: |
+          while ! mysqladmin ping -h "localhost" --silent; do
+            sleep 1
+          done
 
       - name: Run Unit Tests
         run: |
